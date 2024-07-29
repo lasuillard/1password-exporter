@@ -1,0 +1,27 @@
+{
+	"[rust]": {
+		"editor.defaultFormatter": "rust-lang.rust-analyzer"
+	},
+	"cSpell.words": [],
+	"editor.codeActionsOnSave": {
+		"source.fixAll": "explicit",
+		"source.organizeImports": "explicit"
+	},
+	"editor.formatOnSave": true,
+	"files.associations": {},
+	"files.eol": "\n",
+	"files.insertFinalNewline": true,
+	"files.readonlyFromPermissions": true,
+	"files.readonlyInclude": {
+		"**/target/**": true
+	},
+	"json.format.enable": true,
+	"rust-analyzer.linkedProjects": [
+		"./Cargo.toml"
+	],
+	"svelte.enable-ts-plugin": true,
+	"yaml.format.enable": true,
+	"[toml]": {
+		"editor.defaultFormatter": "tamasfe.even-better-toml"
+	}
+}
