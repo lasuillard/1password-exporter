@@ -101,6 +101,14 @@ token      read          1000     0       1000         N/A
 account    read_write    1000     4       996          1 hour from now
 "#
             }
+            "Not used" => {
+                r#"
+TYPE       ACTION        LIMIT    USED    REMAINING    RESET
+token      write         100      0       100          N/A
+token      read          1000     0       1000         N/A
+account    read_write    1000     0       1000         N/A
+"#
+            }
             _ => panic!("Unsupported case"),
         }
         .to_string()
