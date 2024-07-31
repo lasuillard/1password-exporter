@@ -1,15 +1,17 @@
 use std::net::SocketAddr;
 
 use bytes::Bytes;
+use command_executor::OpCommandExecutor;
 use http_body_util::Full;
 use hyper::{header::CONTENT_TYPE, server::conn::http1, service::service_fn, Request, Response};
 use hyper_util::rt::{TokioIo, TokioTimer};
 use lazy_static::lazy_static;
-use op::{OpCommandExecutor, OpMetricsReader};
+use metrics_scraper::OpMetricsScraper;
 use prometheus::{register_int_gauge_vec, Encoder, IntGaugeVec, TextEncoder};
 use tokio::net::TcpListener;
 
-mod op;
+mod command_executor;
+mod metrics_scraper;
 
 lazy_static! {
     static ref OP_RATELIMIT_USED: IntGaugeVec = register_int_gauge_vec!(
@@ -34,8 +36,8 @@ lazy_static! {
 
 fn collect_metrics() {
     let command_executor = OpCommandExecutor {};
-    let metrics_scraper = OpMetricsReader::new(Box::new(command_executor));
-    let rate_limit = metrics_scraper.read_ratelimit();
+    let metrics_scraper = OpMetricsScraper::new(Box::new(command_executor));
+    let rate_limit = metrics_scraper.read_rate_limit();
     for rl in rate_limit {
         OP_RATELIMIT_LIMIT
             .with_label_values(&[&rl.type_, &rl.action])

@@ -1,12 +1,12 @@
-use std::process::Command;
-
 #[cfg(test)]
-use mockall::{predicate::*, *};
+use mockall::predicate::*;
 
-#[derive(Debug, PartialEq)]
+use super::OpMetricsScraper;
+
 /// 1Password API rate limit data.
 ///
 /// Retrieved from CLI `op service-account ratelimit`.
+#[derive(Debug, PartialEq)]
 pub struct RateLimit {
     pub type_: String,
     pub action: String,
@@ -17,32 +17,8 @@ pub struct RateLimit {
     pub reset: String,
 }
 
-#[cfg_attr(test, automock)]
-pub trait CommandExecutor {
-    fn exec(&self, args: Vec<&'static str>) -> Result<String, std::io::Error>;
-}
-
-pub struct OpCommandExecutor {}
-
-impl CommandExecutor for OpCommandExecutor {
-    fn exec(&self, args: Vec<&'static str>) -> Result<String, std::io::Error> {
-        let output = Command::new("op").args(args).output()?;
-        let stdout: String = output.stdout.iter().map(|&x| x as char).collect();
-
-        Ok(stdout)
-    }
-}
-
-pub struct OpMetricsReader {
-    command_executor: Box<dyn CommandExecutor>,
-}
-
-impl OpMetricsReader {
-    pub fn new(command_executor: Box<dyn CommandExecutor>) -> Self {
-        OpMetricsReader { command_executor }
-    }
-
-    pub fn read_ratelimit(&self) -> Vec<RateLimit> {
+impl OpMetricsScraper {
+    pub fn read_rate_limit(&self) -> Vec<RateLimit> {
         let output = self
             .command_executor
             .exec(vec!["service-account", "ratelimit"])
@@ -71,9 +47,10 @@ impl OpMetricsReader {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::command_executor::MockCommandExecutor;
 
     #[test]
-    fn mytest() {
+    fn test_scrape_rate_limit() {
         let mut command_executor = MockCommandExecutor::new();
         command_executor.expect_exec().returning(|_| {
             Ok(r#"
@@ -82,11 +59,12 @@ token      write         100      0       100          N/A
 token      read          1000     0       1000         N/A
 account    read_write    1000     4       996          1 hour from now
 "#
+            .trim_start()
             .to_string())
         });
-        let metrics_reader = OpMetricsReader::new(Box::new(command_executor));
+        let metrics_reader = OpMetricsScraper::new(Box::new(command_executor));
 
-        let ratelimit = metrics_reader.read_ratelimit();
+        let ratelimit = metrics_reader.read_rate_limit();
 
         assert_eq!(ratelimit.len(), 3);
         assert_eq!(
