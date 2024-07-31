@@ -18,3 +18,24 @@ impl CommandExecutor for OpCommandExecutor {
         Ok(stdout)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_command_executor() {
+        // Arrange
+        let executor = OpCommandExecutor {};
+        let output = executor.exec(vec!["--version"]).unwrap();
+
+        // Act
+        let version_info = output.trim().split(".").collect::<Vec<&str>>();
+
+        // Assert
+        assert_eq!(version_info.len(), 3);
+        assert!(version_info[0].parse::<i32>().is_ok());
+        assert!(version_info[1].parse::<i32>().is_ok());
+        assert!(version_info[2].parse::<i32>().is_ok());
+    }
+}
