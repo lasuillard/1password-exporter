@@ -1,15 +1,11 @@
+use std::net::SocketAddr;
+
 use bytes::Bytes;
 use http_body_util::Full;
-use hyper::header::CONTENT_TYPE;
-use hyper::server::conn::http1;
-use hyper::service::service_fn;
-use hyper::{Request, Response};
+use hyper::{header::CONTENT_TYPE, server::conn::http1, service::service_fn, Request, Response};
 use hyper_util::rt::{TokioIo, TokioTimer};
 use lazy_static::lazy_static;
-use prometheus::register_int_gauge_vec;
-use prometheus::IntGaugeVec;
-use prometheus::{Encoder, TextEncoder};
-use std::net::SocketAddr;
+use prometheus::{register_int_gauge_vec, Encoder, IntGaugeVec, TextEncoder};
 use tokio::net::TcpListener;
 
 mod op;

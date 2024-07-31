@@ -4,8 +4,6 @@ MAKEFLAGS += --warn-undefined-variable
 MAKEFLAGS += --no-builtin-rules
 MAKEFLAGS += --silent
 
--include Makefile.*
-
 SHELL := bash
 .ONESHELL:
 .SHELLFLAGS := -eu -o pipefail -c
@@ -13,37 +11,31 @@ SHELL := bash
 .DEFAULT_GOAL := help
 
 help: Makefile  ## Show help
-	for makefile in $(MAKEFILE_LIST)
-	do
-		@echo "$${makefile}"
-		@grep -E '(^[a-zA-Z_-]+:.*?##.*$$)|(^##)' "$${makefile}" | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[32m%-30s\033[0m %s\n", $$1, $$2}' | sed -e 's/\[32m##/[33m/'
-	done
+	@grep -E '(^[a-zA-Z_-]+:.*?##.*$$)|(^##)' "$(MAKEFILE_LIST)" | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[32m%-30s\033[0m %s\n", $$1, $$2}' | sed -e 's/\[32m##/[33m/'
 
 
 # =============================================================================
 # Common
 # =============================================================================
 install:  ## Install the app locally
-	cd src-tauri && cargo fetch && cd -
-	yarn install
+	cargo fetch
 	pre-commit install --install-hooks
 .PHONY: install
 
 update:  ## Update deps and tools
-	cd src-tauri && cargo update && cd -
-	yarn upgrade
+	cargo update
 	pre-commit autoupdate
 .PHONY: update
 
 run:  ## Run development application
-	cargo tauri dev
+	cargo watch -x run
 .PHONY: run
 
 
 # =============================================================================
 # CI
 # =============================================================================
-ci: lint scan test benchmark  ## Run CI tasks
+ci: lint test  ## Run CI tasks
 .PHONY: ci
 
 format:  ## Run autoformatters
@@ -56,15 +48,7 @@ lint:  ## Run linters
 	cargo clippy
 .PHONY: lint
 
-scan:  ## Run scans
-
-.PHONY: scan
-
 test:  ## Run tests
 	cargo llvm-cov nextest --workspace --lcov --output-path lcov.info \
 		&& cargo llvm-cov report --summary-only
 .PHONY: test
-
-benchmark:  ## Run benchmarks
-	cargo bench --workspace
-.PHONY: benchmark
