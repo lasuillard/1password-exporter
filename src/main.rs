@@ -5,6 +5,7 @@ use http_body_util::Full;
 use hyper::{header::CONTENT_TYPE, server::conn::http1, service::service_fn, Request, Response};
 use hyper_util::rt::{TokioIo, TokioTimer};
 use lazy_static::lazy_static;
+use op::{OpCommandExecutor, OpMetricsReader};
 use prometheus::{register_int_gauge_vec, Encoder, IntGaugeVec, TextEncoder};
 use tokio::net::TcpListener;
 
@@ -32,7 +33,9 @@ lazy_static! {
 }
 
 fn collect_metrics() {
-    let rate_limit = op::read_ratelimit();
+    let command_executor = OpCommandExecutor {};
+    let metrics_scraper = OpMetricsReader::new(Box::new(command_executor));
+    let rate_limit = metrics_scraper.read_ratelimit();
     for rl in rate_limit {
         OP_RATELIMIT_LIMIT
             .with_label_values(&[&rl.type_, &rl.action])
