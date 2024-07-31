@@ -1,7 +1,30 @@
+use lazy_static::lazy_static;
 #[cfg(test)]
 use mockall::predicate::*;
+use prometheus::{register_int_gauge_vec, IntGaugeVec};
 
 use super::OpMetricsCollector;
+
+lazy_static! {
+    static ref OP_RATELIMIT_USED: IntGaugeVec = register_int_gauge_vec!(
+        "op_ratelimit_used",
+        "1Password API rate limit used.",
+        &["type", "action"]
+    )
+    .unwrap();
+    static ref OP_RATELIMIT_LIMIT: IntGaugeVec = register_int_gauge_vec!(
+        "op_ratelimit_limit",
+        "1Password API rate limit.",
+        &["type", "action"]
+    )
+    .unwrap();
+    static ref OP_RATELIMIT_REMAINING: IntGaugeVec = register_int_gauge_vec!(
+        "op_ratelimit_remaining",
+        "1Password API rate limit remaining.",
+        &["type", "action"]
+    )
+    .unwrap();
+}
 
 /// 1Password API rate limit data.
 ///
@@ -18,7 +41,7 @@ pub struct RateLimit {
 }
 
 impl OpMetricsCollector {
-    pub fn read_rate_limit(&self) -> Vec<RateLimit> {
+    fn read_rate_limit(&self) -> Vec<RateLimit> {
         let output = self
             .command_executor
             .exec(vec!["service-account", "ratelimit"])
@@ -26,6 +49,7 @@ impl OpMetricsCollector {
         let lines = output.trim().split('\n').collect::<Vec<&str>>();
 
         // Iterate skipping the header
+        // TODO: Better table deserialization with serde
         let mut result = Vec::new();
         for line in lines.iter().skip(1) {
             let fields = line.split_ascii_whitespace().collect::<Vec<&str>>();
@@ -42,33 +66,62 @@ impl OpMetricsCollector {
 
         result
     }
+
+    pub fn collect_rate_limit(&self) {
+        let rate_limit = self.read_rate_limit();
+        for rl in rate_limit {
+            OP_RATELIMIT_LIMIT
+                .with_label_values(&[&rl.type_, &rl.action])
+                .set(rl.limit as i64);
+            OP_RATELIMIT_USED
+                .with_label_values(&[&rl.type_, &rl.action])
+                .set(rl.used as i64);
+            OP_RATELIMIT_REMAINING
+                .with_label_values(&[&rl.type_, &rl.action])
+                .set(rl.remaining as i64);
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
+    use rstest::*;
+
     use super::*;
     use crate::command_executor::MockCommandExecutor;
 
-    #[test]
-    fn test_read_rate_limit() {
-        let mut command_executor = MockCommandExecutor::new();
-        command_executor.expect_exec().returning(|_| {
-            Ok(r#"
+    #[fixture]
+    fn rate_limit(#[default("OK")] case: &str) -> String {
+        match case {
+            "OK" => {
+                r#"
 TYPE       ACTION        LIMIT    USED    REMAINING    RESET
 token      write         100      0       100          N/A
 token      read          1000     0       1000         N/A
 account    read_write    1000     4       996          1 hour from now
 "#
-            .trim_start()
-            .to_string())
-        });
-        let metrics_reader = OpMetricsCollector::new(Box::new(command_executor));
+            }
+            _ => panic!("Unsupported case"),
+        }
+        .to_string()
+    }
 
-        let ratelimit = metrics_reader.read_rate_limit();
+    #[rstest]
+    fn test_read_rate_limit(rate_limit: String) {
+        // Arrange
+        let mut command_executor = MockCommandExecutor::new();
+        command_executor
+            .expect_exec()
+            .returning(move |_| Ok(rate_limit.clone()));
+        let metrics_collector = OpMetricsCollector::new(Box::new(command_executor));
 
-        assert_eq!(ratelimit.len(), 3);
+        // Act
+        let rate_limits = metrics_collector.read_rate_limit();
+
+        // Assert
+        assert_eq!(rate_limits.len(), 3);
         assert_eq!(
-            ratelimit[0],
+            rate_limits[0],
             RateLimit {
                 type_: "token".to_string(),
                 action: "write".to_string(),
@@ -79,7 +132,7 @@ account    read_write    1000     4       996          1 hour from now
             }
         );
         assert_eq!(
-            ratelimit[1],
+            rate_limits[1],
             RateLimit {
                 type_: "token".to_string(),
                 action: "read".to_string(),
@@ -90,7 +143,7 @@ account    read_write    1000     4       996          1 hour from now
             }
         );
         assert_eq!(
-            ratelimit[2],
+            rate_limits[2],
             RateLimit {
                 type_: "account".to_string(),
                 action: "read_write".to_string(),
@@ -99,6 +152,84 @@ account    read_write    1000     4       996          1 hour from now
                 remaining: 996,
                 reset: "1 hour from now".to_string(),
             }
+        );
+    }
+
+    #[rstest]
+    fn test_collect_rate_limit(rate_limit: String) {
+        // Arrange
+        let mut command_executor = MockCommandExecutor::new();
+        command_executor
+            .expect_exec()
+            .returning(move |_| Ok(rate_limit.clone()));
+        let metrics_collector = OpMetricsCollector::new(Box::new(command_executor));
+
+        // Act
+        metrics_collector.collect_rate_limit();
+
+        // Assert
+        assert_eq!(
+            OP_RATELIMIT_LIMIT
+                .get_metric_with_label_values(&["token", "write"])
+                .unwrap()
+                .get(),
+            100
+        );
+        assert_eq!(
+            OP_RATELIMIT_USED
+                .get_metric_with_label_values(&["token", "write"])
+                .unwrap()
+                .get(),
+            0
+        );
+        assert_eq!(
+            OP_RATELIMIT_REMAINING
+                .get_metric_with_label_values(&["token", "write"])
+                .unwrap()
+                .get(),
+            100
+        );
+        assert_eq!(
+            OP_RATELIMIT_LIMIT
+                .get_metric_with_label_values(&["token", "read"])
+                .unwrap()
+                .get(),
+            1000
+        );
+        assert_eq!(
+            OP_RATELIMIT_USED
+                .get_metric_with_label_values(&["token", "read"])
+                .unwrap()
+                .get(),
+            0
+        );
+        assert_eq!(
+            OP_RATELIMIT_REMAINING
+                .get_metric_with_label_values(&["token", "read"])
+                .unwrap()
+                .get(),
+            1000
+        );
+        assert_eq!(
+            OP_RATELIMIT_LIMIT
+                .get_metric_with_label_values(&["account", "read_write"])
+                .unwrap()
+                .get(),
+            1000
+        );
+        assert_eq!(
+            OP_RATELIMIT_USED
+                .get_metric_with_label_values(&["account", "read_write"])
+                .unwrap()
+                .get(),
+            4
+        );
+        assert_eq!(
+            OP_RATELIMIT_REMAINING
+                .get_metric_with_label_values(&["account", "read_write"])
+                .unwrap()
+                .get(),
+            996
         );
     }
 }
