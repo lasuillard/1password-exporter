@@ -2,12 +2,12 @@ use crate::command_executor::CommandExecutor;
 
 mod rate_limit;
 
-pub struct OpMetricsScraper {
+pub struct OpMetricsCollector {
     command_executor: Box<dyn CommandExecutor>,
 }
 
-impl OpMetricsScraper {
+impl OpMetricsCollector {
     pub fn new(command_executor: Box<dyn CommandExecutor>) -> Self {
-        OpMetricsScraper { command_executor }
+        OpMetricsCollector { command_executor }
     }
 }

@@ -1,5 +1,5 @@
 mod command_executor;
-mod metrics_scraper;
+mod metrics_collector;
 mod server;
 
 #[tokio::main]

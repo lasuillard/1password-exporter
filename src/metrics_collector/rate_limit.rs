@@ -1,7 +1,7 @@
 #[cfg(test)]
 use mockall::predicate::*;
 
-use super::OpMetricsScraper;
+use super::OpMetricsCollector;
 
 /// 1Password API rate limit data.
 ///
@@ -17,7 +17,7 @@ pub struct RateLimit {
     pub reset: String,
 }
 
-impl OpMetricsScraper {
+impl OpMetricsCollector {
     pub fn read_rate_limit(&self) -> Vec<RateLimit> {
         let output = self
             .command_executor
@@ -50,7 +50,7 @@ mod tests {
     use crate::command_executor::MockCommandExecutor;
 
     #[test]
-    fn test_scrape_rate_limit() {
+    fn test_read_rate_limit() {
         let mut command_executor = MockCommandExecutor::new();
         command_executor.expect_exec().returning(|_| {
             Ok(r#"
@@ -62,7 +62,7 @@ account    read_write    1000     4       996          1 hour from now
             .trim_start()
             .to_string())
         });
-        let metrics_reader = OpMetricsScraper::new(Box::new(command_executor));
+        let metrics_reader = OpMetricsCollector::new(Box::new(command_executor));
 
         let ratelimit = metrics_reader.read_rate_limit();
 
