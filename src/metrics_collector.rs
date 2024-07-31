@@ -4,7 +4,7 @@ use crate::command_executor::CommandExecutor;
 
 mod rate_limit;
 
-#[derive(Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, clap::ValueEnum)]
 pub enum Metrics {
     RateLimit,
 }

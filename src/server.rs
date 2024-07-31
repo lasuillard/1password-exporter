@@ -12,12 +12,13 @@ use crate::{command_executor::OpCommandExecutor,
 
 async fn serve(
     _req: Request<impl hyper::body::Body>,
+    metrics: Vec<Metrics>,
 ) -> Result<Response<Full<Bytes>>, hyper::Error> {
     // Collect all metrics
     let command_executor = OpCommandExecutor {};
     let metrics_collector = OpMetricsCollector::new(Box::new(command_executor));
     // TODO: Only collect required metrics (read from config)
-    metrics_collector.collect(vec![Metrics::RateLimit]);
+    metrics_collector.collect(metrics);
 
     // Encode to Prometheus format
     let metric_families = prometheus::gather();
@@ -36,18 +37,20 @@ async fn serve(
 }
 
 pub async fn run_server(
-    host: &str,
+    host: String,
     port: u16,
+    metrics: Vec<Metrics>,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let addr: SocketAddr = format!("{host}:{port}").parse()?;
     let listener = TcpListener::bind(addr).await?;
     loop {
         let (tcp, _) = listener.accept().await?;
         let io = TokioIo::new(tcp);
+        let inner = metrics.clone();
         tokio::task::spawn(async move {
             if let Err(err) = http1::Builder::new()
                 .timer(TokioTimer::new())
-                .serve_connection(io, service_fn(serve))
+                .serve_connection(io, service_fn(move |req| serve(req, inner.clone())))
                 .await
             {
                 println!("Error serving connection: {:?}", err);
