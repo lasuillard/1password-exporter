@@ -6,29 +6,33 @@ use prometheus::{register_int_gauge_vec, IntGaugeVec};
 use super::OpMetricsCollector;
 
 lazy_static! {
-    static ref OP_RATELIMIT_USED: IntGaugeVec = register_int_gauge_vec!(
+    static ref OP_SERVICEACCOUNT_RATELIMIT_USED: IntGaugeVec = register_int_gauge_vec!(
         "op_serviceaccount_ratelimit_used",
         "1Password API rate limit used.",
         &["type", "action"]
     )
     .unwrap();
-    static ref OP_RATELIMIT_LIMIT: IntGaugeVec = register_int_gauge_vec!(
+    static ref OP_SERVICEACCOUNT_RATELIMIT_LIMIT: IntGaugeVec = register_int_gauge_vec!(
         "op_serviceaccount_ratelimit_limit",
         "1Password API rate limit.",
         &["type", "action"]
     )
     .unwrap();
-    static ref OP_RATELIMIT_REMAINING: IntGaugeVec = register_int_gauge_vec!(
+    static ref OP_SERVICEACCOUNT_RATELIMIT_REMAINING: IntGaugeVec = register_int_gauge_vec!(
         "op_serviceaccount_ratelimit_remaining",
         "1Password API rate limit remaining.",
         &["type", "action"]
     )
     .unwrap();
+    static ref OP_SERVICEACCOUNT_WHOAMI: IntGaugeVec = register_int_gauge_vec!(
+        "op_serviceaccount_whoami",
+        "1Password service account information.",
+        &["url", "integration_id", "user_type"]
+    )
+    .unwrap();
 }
 
-/// 1Password API rate limit data.
-///
-/// Retrieved from CLI `op service-account ratelimit`.
+/// 1Password service account rate limit information.
 #[derive(Debug, PartialEq)]
 pub struct Ratelimit {
     pub type_: String,
@@ -38,6 +42,13 @@ pub struct Ratelimit {
     pub remaining: i32,
     #[allow(dead_code)]
     pub reset: String,
+}
+
+/// 1Password service account information.
+pub struct Whoami {
+    pub url: String,
+    pub integration_id: String,
+    pub user_type: String,
 }
 
 impl OpMetricsCollector {
@@ -67,23 +78,47 @@ impl OpMetricsCollector {
         result
     }
 
-    fn collect_ratelimit(&self) {
-        let ratelimit = self.read_ratelimit();
-        for rl in ratelimit {
-            OP_RATELIMIT_LIMIT
-                .with_label_values(&[&rl.type_, &rl.action])
-                .set(rl.limit as i64);
-            OP_RATELIMIT_USED
-                .with_label_values(&[&rl.type_, &rl.action])
-                .set(rl.used as i64);
-            OP_RATELIMIT_REMAINING
-                .with_label_values(&[&rl.type_, &rl.action])
-                .set(rl.remaining as i64);
+    fn read_whoami(&self) -> Whoami {
+        let output = self.command_executor.exec(vec!["whoami"]).unwrap();
+        let lines = output.trim().split('\n').collect::<Vec<&str>>();
+
+        let url = lines[0].strip_prefix("URL:").unwrap().trim().to_string();
+        let integration_id = lines[1]
+            .strip_prefix("Integration ID:")
+            .unwrap()
+            .trim()
+            .to_string();
+        let user_type = lines[2]
+            .strip_prefix("User Type:")
+            .unwrap()
+            .trim()
+            .to_string();
+
+        Whoami {
+            url,
+            integration_id,
+            user_type,
         }
     }
 
     pub fn collect_serviceaccount(&self) {
-        self.collect_ratelimit();
+        let ratelimit = self.read_ratelimit();
+        for rl in ratelimit {
+            OP_SERVICEACCOUNT_RATELIMIT_LIMIT
+                .with_label_values(&[&rl.type_, &rl.action])
+                .set(rl.limit as i64);
+            OP_SERVICEACCOUNT_RATELIMIT_USED
+                .with_label_values(&[&rl.type_, &rl.action])
+                .set(rl.used as i64);
+            OP_SERVICEACCOUNT_RATELIMIT_REMAINING
+                .with_label_values(&[&rl.type_, &rl.action])
+                .set(rl.remaining as i64);
+        }
+
+        let whoami = self.read_whoami();
+        OP_SERVICEACCOUNT_WHOAMI
+            .with_label_values(&[&whoami.url, &whoami.integration_id, &whoami.user_type])
+            .set(1);
     }
 }
 
@@ -118,12 +153,23 @@ account    read_write    1000     0       1000         N/A
         .to_string()
     }
 
+    #[fixture]
+    fn whoami() -> String {
+        r#"
+URL:               https://my.1password.com
+Integration ID:    WADYB2CBTFBIFKESZ6AV74PUGE
+User Type:         SERVICE_ACCOUNT
+"#
+        .to_string()
+    }
+
     #[rstest]
     fn test_read_ratelimit(ratelimit: String) {
         // Arrange
         let mut command_executor = MockCommandExecutor::new();
         command_executor
             .expect_exec()
+            .with(eq(vec!["service-account", "ratelimit"]))
             .returning(move |_| Ok(ratelimit.clone()));
         let metrics_collector = OpMetricsCollector::new(Box::new(command_executor));
 
@@ -168,80 +214,114 @@ account    read_write    1000     0       1000         N/A
     }
 
     #[rstest]
-    fn test_collect_ratelimit(ratelimit: String) {
+    fn test_read_whoami(whoami: String) {
         // Arrange
         let mut command_executor = MockCommandExecutor::new();
         command_executor
             .expect_exec()
-            .returning(move |_| Ok(ratelimit.clone()));
+            .returning(move |_| Ok(whoami.clone()));
         let metrics_collector = OpMetricsCollector::new(Box::new(command_executor));
 
         // Act
-        metrics_collector.collect_ratelimit();
+        let whoami = metrics_collector.read_whoami();
+
+        // Assert
+        assert_eq!(whoami.url, "https://my.1password.com");
+        assert_eq!(whoami.integration_id, "WADYB2CBTFBIFKESZ6AV74PUGE");
+        assert_eq!(whoami.user_type, "SERVICE_ACCOUNT");
+    }
+
+    #[rstest]
+    fn test_collect_serviceaccount(ratelimit: String, whoami: String) {
+        // Arrange
+        let mut command_executor = MockCommandExecutor::new();
+        command_executor
+            .expect_exec()
+            .with(eq(vec!["service-account", "ratelimit"]))
+            .returning(move |_| Ok(ratelimit.clone()));
+        command_executor
+            .expect_exec()
+            .with(eq(vec!["whoami"]))
+            .returning(move |_| Ok(whoami.clone()));
+        let metrics_collector = OpMetricsCollector::new(Box::new(command_executor));
+
+        // Act
+        metrics_collector.collect_serviceaccount();
 
         // Assert
         assert_eq!(
-            OP_RATELIMIT_LIMIT
+            OP_SERVICEACCOUNT_RATELIMIT_LIMIT
                 .get_metric_with_label_values(&["token", "write"])
                 .unwrap()
                 .get(),
             100
         );
         assert_eq!(
-            OP_RATELIMIT_USED
+            OP_SERVICEACCOUNT_RATELIMIT_USED
                 .get_metric_with_label_values(&["token", "write"])
                 .unwrap()
                 .get(),
             0
         );
         assert_eq!(
-            OP_RATELIMIT_REMAINING
+            OP_SERVICEACCOUNT_RATELIMIT_REMAINING
                 .get_metric_with_label_values(&["token", "write"])
                 .unwrap()
                 .get(),
             100
         );
         assert_eq!(
-            OP_RATELIMIT_LIMIT
+            OP_SERVICEACCOUNT_RATELIMIT_LIMIT
                 .get_metric_with_label_values(&["token", "read"])
                 .unwrap()
                 .get(),
             1000
         );
         assert_eq!(
-            OP_RATELIMIT_USED
+            OP_SERVICEACCOUNT_RATELIMIT_USED
                 .get_metric_with_label_values(&["token", "read"])
                 .unwrap()
                 .get(),
             0
         );
         assert_eq!(
-            OP_RATELIMIT_REMAINING
+            OP_SERVICEACCOUNT_RATELIMIT_REMAINING
                 .get_metric_with_label_values(&["token", "read"])
                 .unwrap()
                 .get(),
             1000
         );
         assert_eq!(
-            OP_RATELIMIT_LIMIT
+            OP_SERVICEACCOUNT_RATELIMIT_LIMIT
                 .get_metric_with_label_values(&["account", "read_write"])
                 .unwrap()
                 .get(),
             1000
         );
         assert_eq!(
-            OP_RATELIMIT_USED
+            OP_SERVICEACCOUNT_RATELIMIT_USED
                 .get_metric_with_label_values(&["account", "read_write"])
                 .unwrap()
                 .get(),
             4
         );
         assert_eq!(
-            OP_RATELIMIT_REMAINING
+            OP_SERVICEACCOUNT_RATELIMIT_REMAINING
                 .get_metric_with_label_values(&["account", "read_write"])
                 .unwrap()
                 .get(),
             996
+        );
+        assert_eq!(
+            OP_SERVICEACCOUNT_WHOAMI
+                .get_metric_with_label_values(&[
+                    "https://my.1password.com",
+                    "WADYB2CBTFBIFKESZ6AV74PUGE",
+                    "SERVICE_ACCOUNT"
+                ])
+                .unwrap()
+                .get(),
+            1
         );
     }
 }
