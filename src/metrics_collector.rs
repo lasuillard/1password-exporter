@@ -2,7 +2,14 @@ use std::str::FromStr;
 
 use crate::command_executor::CommandExecutor;
 
+mod account;
+mod build_info;
+mod document;
+mod group;
+mod item;
 mod service_account;
+mod user;
+mod vault;
 
 #[derive(Copy, Clone, Debug, PartialEq, clap::ValueEnum)]
 pub enum Metrics {
