@@ -2,7 +2,12 @@
 	"[rust]": {
 		"editor.defaultFormatter": "rust-lang.rust-analyzer"
 	},
-	"cSpell.words": [],
+	"cSpell.words": [
+		"mockall",
+		"RATELIMIT",
+		"rstest",
+		"serviceaccount"
+	],
 	"editor.codeActionsOnSave": {
 		"source.fixAll": "explicit",
 		"source.organizeImports": "explicit"
