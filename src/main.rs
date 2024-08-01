@@ -1,4 +1,5 @@
 use clap::Parser;
+use simplelog::*;
 
 use crate::metrics_collector::Metrics;
 
@@ -10,6 +11,10 @@ mod server;
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
+    /// Log level.
+    #[arg(long, default_value_t = LevelFilter::Info)]
+    log_level: LevelFilter,
+
     /// Host to bind the server to.
     #[arg(long, default_value = "127.0.0.1")]
     host: String,
@@ -27,5 +32,13 @@ struct Args {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let args = Args::parse();
+
+    TermLogger::init(
+        args.log_level,
+        Config::default(),
+        TerminalMode::Mixed,
+        ColorChoice::Auto,
+    )?;
+
     crate::server::run_server(args.host, args.port, args.metrics).await
 }

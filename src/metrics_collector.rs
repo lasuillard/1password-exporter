@@ -57,7 +57,7 @@ impl OpMetricsCollector {
         for metric in metrics {
             match metric {
                 Metrics::ServiceAccount => self.collect_serviceaccount(),
-                _ => panic!("Metric {:?} not supported", metric),
+                _ => log::error!("Metric {:?} is not supported", metric),
             }
         }
     }

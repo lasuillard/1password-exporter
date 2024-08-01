@@ -43,6 +43,7 @@ pub async fn run_server(
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let addr: SocketAddr = format!("{host}:{port}").parse()?;
     let listener = TcpListener::bind(addr).await?;
+    log::info!("Listening on http://{}", addr);
     loop {
         let (tcp, _) = listener.accept().await?;
         let io = TokioIo::new(tcp);
@@ -53,7 +54,7 @@ pub async fn run_server(
                 .serve_connection(io, service_fn(move |req| serve(req, inner.clone())))
                 .await
             {
-                println!("Error serving connection: {:?}", err);
+                log::error!("Error serving connection: {:?}", err);
             }
         });
     }
