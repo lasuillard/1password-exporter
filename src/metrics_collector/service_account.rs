@@ -7,19 +7,19 @@ use super::OpMetricsCollector;
 
 lazy_static! {
     static ref OP_RATELIMIT_USED: IntGaugeVec = register_int_gauge_vec!(
-        "op_ratelimit_used",
+        "op_serviceaccount_ratelimit_used",
         "1Password API rate limit used.",
         &["type", "action"]
     )
     .unwrap();
     static ref OP_RATELIMIT_LIMIT: IntGaugeVec = register_int_gauge_vec!(
-        "op_ratelimit_limit",
+        "op_serviceaccount_ratelimit_limit",
         "1Password API rate limit.",
         &["type", "action"]
     )
     .unwrap();
     static ref OP_RATELIMIT_REMAINING: IntGaugeVec = register_int_gauge_vec!(
-        "op_ratelimit_remaining",
+        "op_serviceaccount_ratelimit_remaining",
         "1Password API rate limit remaining.",
         &["type", "action"]
     )
@@ -30,7 +30,7 @@ lazy_static! {
 ///
 /// Retrieved from CLI `op service-account ratelimit`.
 #[derive(Debug, PartialEq)]
-pub struct RateLimit {
+pub struct Ratelimit {
     pub type_: String,
     pub action: String,
     pub limit: i32,
@@ -41,7 +41,7 @@ pub struct RateLimit {
 }
 
 impl OpMetricsCollector {
-    fn read_rate_limit(&self) -> Vec<RateLimit> {
+    fn read_ratelimit(&self) -> Vec<Ratelimit> {
         let output = self
             .command_executor
             .exec(vec!["service-account", "ratelimit"])
@@ -53,7 +53,7 @@ impl OpMetricsCollector {
         let mut result = Vec::new();
         for line in lines.iter().skip(1) {
             let fields = line.split_ascii_whitespace().collect::<Vec<&str>>();
-            let rate_limit = RateLimit {
+            let ratelimit = Ratelimit {
                 type_: fields[0].to_string(),
                 action: fields[1].to_string(),
                 limit: fields[2].parse().unwrap(),
@@ -61,15 +61,15 @@ impl OpMetricsCollector {
                 remaining: fields[4].parse().unwrap(),
                 reset: fields[5..].join(" ").to_string(),
             };
-            result.push(rate_limit);
+            result.push(ratelimit);
         }
 
         result
     }
 
-    pub fn collect_rate_limit(&self) {
-        let rate_limit = self.read_rate_limit();
-        for rl in rate_limit {
+    fn collect_ratelimit(&self) {
+        let ratelimit = self.read_ratelimit();
+        for rl in ratelimit {
             OP_RATELIMIT_LIMIT
                 .with_label_values(&[&rl.type_, &rl.action])
                 .set(rl.limit as i64);
@@ -81,6 +81,10 @@ impl OpMetricsCollector {
                 .set(rl.remaining as i64);
         }
     }
+
+    pub fn collect_serviceaccount(&self) {
+        self.collect_ratelimit();
+    }
 }
 
 #[cfg(test)]
@@ -91,7 +95,7 @@ mod tests {
     use crate::command_executor::MockCommandExecutor;
 
     #[fixture]
-    fn rate_limit(#[default("OK")] case: &str) -> String {
+    fn ratelimit(#[default("OK")] case: &str) -> String {
         match case {
             "OK" => {
                 r#"
@@ -115,22 +119,22 @@ account    read_write    1000     0       1000         N/A
     }
 
     #[rstest]
-    fn test_read_rate_limit(rate_limit: String) {
+    fn test_read_ratelimit(ratelimit: String) {
         // Arrange
         let mut command_executor = MockCommandExecutor::new();
         command_executor
             .expect_exec()
-            .returning(move |_| Ok(rate_limit.clone()));
+            .returning(move |_| Ok(ratelimit.clone()));
         let metrics_collector = OpMetricsCollector::new(Box::new(command_executor));
 
         // Act
-        let rate_limits = metrics_collector.read_rate_limit();
+        let ratelimits = metrics_collector.read_ratelimit();
 
         // Assert
-        assert_eq!(rate_limits.len(), 3);
+        assert_eq!(ratelimits.len(), 3);
         assert_eq!(
-            rate_limits[0],
-            RateLimit {
+            ratelimits[0],
+            Ratelimit {
                 type_: "token".to_string(),
                 action: "write".to_string(),
                 limit: 100,
@@ -140,8 +144,8 @@ account    read_write    1000     0       1000         N/A
             }
         );
         assert_eq!(
-            rate_limits[1],
-            RateLimit {
+            ratelimits[1],
+            Ratelimit {
                 type_: "token".to_string(),
                 action: "read".to_string(),
                 limit: 1000,
@@ -151,8 +155,8 @@ account    read_write    1000     0       1000         N/A
             }
         );
         assert_eq!(
-            rate_limits[2],
-            RateLimit {
+            ratelimits[2],
+            Ratelimit {
                 type_: "account".to_string(),
                 action: "read_write".to_string(),
                 limit: 1000,
@@ -164,16 +168,16 @@ account    read_write    1000     0       1000         N/A
     }
 
     #[rstest]
-    fn test_collect_rate_limit(rate_limit: String) {
+    fn test_collect_ratelimit(ratelimit: String) {
         // Arrange
         let mut command_executor = MockCommandExecutor::new();
         command_executor
             .expect_exec()
-            .returning(move |_| Ok(rate_limit.clone()));
+            .returning(move |_| Ok(ratelimit.clone()));
         let metrics_collector = OpMetricsCollector::new(Box::new(command_executor));
 
         // Act
-        metrics_collector.collect_rate_limit();
+        metrics_collector.collect_ratelimit();
 
         // Assert
         assert_eq!(

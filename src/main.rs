@@ -20,7 +20,7 @@ struct Args {
     port: u16,
 
     /// Metrics to collect. Only metrics not consuming API rate enabled by default.
-    #[arg(short, long, default_values = ["rate-limit"])]
+    #[arg(short, long, default_values = ["service-account"])]
     metrics: Vec<Metrics>,
 }
 
