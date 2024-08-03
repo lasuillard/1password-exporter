@@ -1,7 +1,7 @@
 use super::OpMetricsCollector;
 
 impl OpMetricsCollector {
-    pub fn collect_vault(&self) {
+    pub(crate) fn collect_vault(&self) {
         log::error!("Not implemented");
     }
 }

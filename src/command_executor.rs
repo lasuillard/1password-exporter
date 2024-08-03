@@ -4,11 +4,11 @@ use std::process::Command;
 use mockall::{predicate::*, *};
 
 #[cfg_attr(test, automock)]
-pub trait CommandExecutor {
+pub(crate) trait CommandExecutor {
     fn exec(&self, args: Vec<&'static str>) -> Result<String, std::io::Error>;
 }
 
-pub struct OpCommandExecutor {}
+pub(crate) struct OpCommandExecutor {}
 
 impl CommandExecutor for OpCommandExecutor {
     fn exec(&self, args: Vec<&'static str>) -> Result<String, std::io::Error> {

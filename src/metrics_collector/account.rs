@@ -1,7 +1,7 @@
 use super::OpMetricsCollector;
 
 impl OpMetricsCollector {
-    pub fn collect_account(&self) {
+    pub(crate) fn collect_account(&self) {
         log::error!("Not implemented");
     }
 }

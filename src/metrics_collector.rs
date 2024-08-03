@@ -12,7 +12,7 @@ mod user;
 mod vault;
 
 #[derive(Copy, Clone, Debug, PartialEq, clap::ValueEnum)]
-pub enum Metrics {
+pub(crate) enum Metrics {
     // Metrics that does not consume quota
     Account,
     BuildInfo,
@@ -43,16 +43,16 @@ impl FromStr for Metrics {
     }
 }
 
-pub struct OpMetricsCollector {
+pub(crate) struct OpMetricsCollector {
     command_executor: Box<dyn CommandExecutor>,
 }
 
 impl OpMetricsCollector {
-    pub fn new(command_executor: Box<dyn CommandExecutor>) -> Self {
+    pub(crate) fn new(command_executor: Box<dyn CommandExecutor>) -> Self {
         OpMetricsCollector { command_executor }
     }
 
-    pub fn collect(&self, metrics: Vec<Metrics>) {
+    pub(crate) fn collect(&self, metrics: Vec<Metrics>) {
         // TODO: Collect all metrics in async manner (use Tokio)
         for metric in metrics {
             match metric {

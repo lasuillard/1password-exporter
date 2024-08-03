@@ -36,7 +36,7 @@ async fn serve(
     Ok(response)
 }
 
-pub async fn run_server(
+pub(crate) async fn run_server(
     host: String,
     port: u16,
     metrics: Vec<Metrics>,

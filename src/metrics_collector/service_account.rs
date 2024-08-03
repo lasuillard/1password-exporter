@@ -34,21 +34,21 @@ lazy_static! {
 
 /// 1Password service account rate limit information.
 #[derive(Debug, PartialEq)]
-pub struct Ratelimit {
-    pub type_: String,
-    pub action: String,
-    pub limit: i32,
-    pub used: i32,
-    pub remaining: i32,
+pub(crate) struct Ratelimit {
+    pub(crate) type_: String,
+    pub(crate) action: String,
+    pub(crate) limit: i32,
+    pub(crate) used: i32,
+    pub(crate) remaining: i32,
     #[allow(dead_code)]
-    pub reset: String,
+    pub(crate) reset: String,
 }
 
 /// 1Password service account information.
-pub struct Whoami {
-    pub url: String,
-    pub integration_id: String,
-    pub user_type: String,
+pub(crate) struct Whoami {
+    pub(crate) url: String,
+    pub(crate) integration_id: String,
+    pub(crate) user_type: String,
 }
 
 impl OpMetricsCollector {
@@ -89,7 +89,7 @@ impl OpMetricsCollector {
         }
     }
 
-    pub fn collect_serviceaccount(&self) {
+    pub(crate) fn collect_serviceaccount(&self) {
         let ratelimit = self.read_ratelimit();
         for rl in ratelimit {
             OP_SERVICEACCOUNT_RATELIMIT_LIMIT
