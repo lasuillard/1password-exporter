@@ -80,24 +80,12 @@ impl OpMetricsCollector {
 
     fn read_whoami(&self) -> Whoami {
         let output = self.command_executor.exec(vec!["whoami"]).unwrap();
-        let lines = output.trim().split('\n').collect::<Vec<&str>>();
-
-        let url = lines[0].strip_prefix("URL:").unwrap().trim().to_string();
-        let integration_id = lines[1]
-            .strip_prefix("Integration ID:")
-            .unwrap()
-            .trim()
-            .to_string();
-        let user_type = lines[2]
-            .strip_prefix("User Type:")
-            .unwrap()
-            .trim()
-            .to_string();
+        let kv = crate::utils::parse_kv(&output);
 
         Whoami {
-            url,
-            integration_id,
-            user_type,
+            url: kv.get("URL").unwrap().to_string(),
+            integration_id: kv.get("Integration ID").unwrap().to_string(),
+            user_type: kv.get("User Type").unwrap().to_string(),
         }
     }
 
