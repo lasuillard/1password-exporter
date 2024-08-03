@@ -28,7 +28,7 @@ update:  ## Update deps and tools
 .PHONY: update
 
 run:  ## Run development application
-	cargo watch -x run
+	cargo watch -x 'run -- --log-level debug'
 .PHONY: run
 
 
