@@ -2,6 +2,7 @@ use lazy_static::lazy_static;
 #[cfg(test)]
 use mockall::predicate::*;
 use prometheus::{register_int_gauge_vec, IntGaugeVec};
+use serde::Deserialize;
 
 use super::OpMetricsCollector;
 
@@ -24,51 +25,77 @@ lazy_static! {
         &["type", "action"]
     )
     .unwrap();
+    static ref OP_SERVICEACCOUNT_RATELIMIT_RESET: IntGaugeVec = register_int_gauge_vec!(
+        "op_serviceaccount_ratelimit_reset_seconds",
+        "1Password API rate limit remaining.",
+        &["type", "action"]
+    )
+    .unwrap();
     static ref OP_SERVICEACCOUNT_WHOAMI: IntGaugeVec = register_int_gauge_vec!(
         "op_serviceaccount_whoami",
         "1Password service account information.",
-        &["url", "integration_id", "user_type"]
+        &["url", "user_uuid", "account_uuid", "user_type"]
     )
     .unwrap();
+}
+
+#[derive(Deserialize, Debug)]
+struct Ratelimit {
+    #[serde(rename = "type")]
+    pub(crate) type_: String,
+    pub(crate) action: String,
+    pub(crate) limit: i64,
+    pub(crate) used: i64,
+    pub(crate) remaining: i64,
+    pub(crate) reset: i64, // Remaining seconds until the rate limit resets.
+}
+
+#[derive(Deserialize, Debug)]
+struct Whoami {
+    pub(crate) url: String,
+    pub(crate) user_uuid: String,
+    pub(crate) account_uuid: String,
+    pub(crate) user_type: String,
 }
 
 impl OpMetricsCollector {
     pub(crate) fn read_ratelimit(&self) {
         let output = self
             .command_executor
-            .exec(vec!["service-account", "ratelimit"])
+            .exec(vec!["service-account", "ratelimit", "--format", "json"])
             .unwrap();
+        let ratelimit: Vec<Ratelimit> = serde_json::from_str(&output).unwrap();
 
-        let table = crate::utils::parse_table(&output);
-        for row in table {
-            let type_ = row.get("TYPE").unwrap();
-            let action = row.get("ACTION").unwrap();
-            let limit: i64 = row.get("LIMIT").unwrap().parse().unwrap();
-            let used: i64 = row.get("USED").unwrap().parse().unwrap();
-            let remaining: i64 = row.get("REMAINING").unwrap().parse().unwrap();
-
+        for rl in ratelimit {
             OP_SERVICEACCOUNT_RATELIMIT_LIMIT
-                .with_label_values(&[type_, action])
-                .set(limit as i64);
+                .with_label_values(&[&rl.type_, &rl.action])
+                .set(rl.limit);
             OP_SERVICEACCOUNT_RATELIMIT_USED
-                .with_label_values(&[type_, action])
-                .set(used as i64);
+                .with_label_values(&[&rl.type_, &rl.action])
+                .set(rl.used);
             OP_SERVICEACCOUNT_RATELIMIT_REMAINING
-                .with_label_values(&[type_, action])
-                .set(remaining as i64);
+                .with_label_values(&[&rl.type_, &rl.action])
+                .set(rl.remaining);
+            OP_SERVICEACCOUNT_RATELIMIT_RESET
+                .with_label_values(&[&rl.type_, &rl.action])
+                .set(rl.reset);
         }
     }
 
     pub(crate) fn read_whoami(&self) {
-        let output = self.command_executor.exec(vec!["whoami"]).unwrap();
-        let kv = crate::utils::parse_kv(&output);
-
-        let url = kv.get("URL").unwrap().to_string();
-        let integration_id = kv.get("Integration ID").unwrap().to_string();
-        let user_type = kv.get("User Type").unwrap().to_string();
+        let output = self
+            .command_executor
+            .exec(vec!["whoami", "--format", "json"])
+            .unwrap();
+        let whoami: Whoami = serde_json::from_str(&output).unwrap();
 
         OP_SERVICEACCOUNT_WHOAMI
-            .with_label_values(&[&url, &integration_id, &user_type])
+            .with_label_values(&[
+                &whoami.url,
+                &whoami.user_uuid,
+                &whoami.account_uuid,
+                &whoami.user_type,
+            ])
             .set(1);
     }
 }
@@ -81,35 +108,49 @@ mod tests {
     use crate::command_executor::MockCommandExecutor;
 
     #[fixture]
-    fn ratelimit(#[default("OK")] case: &str) -> String {
-        match case {
-            "OK" => {
-                r#"
-TYPE       ACTION        LIMIT    USED    REMAINING    RESET
-token      write         100      0       100          N/A
-token      read          1000     0       1000         N/A
-account    read_write    1000     4       996          1 hour from now
+    fn ratelimit() -> String {
+        r#"
+[
+  {
+    "type": "token",
+    "action": "write",
+    "limit": 100,
+    "used": 0,
+    "remaining": 100,
+    "reset": 0
+  },
+  {
+    "type": "token",
+    "action": "read",
+    "limit": 1000,
+    "used": 1,
+    "remaining": 999,
+    "reset": 308
+  },
+  {
+    "type": "account",
+    "action": "read_write",
+    "limit": 1000,
+    "used": 1,
+    "remaining": 999,
+    "reset": 83108
+  }
+]
 "#
-            }
-            "Not used" => {
-                r#"
-TYPE       ACTION        LIMIT    USED    REMAINING    RESET
-token      write         100      0       100          N/A
-token      read          1000     0       1000         N/A
-account    read_write    1000     0       1000         N/A
-"#
-            }
-            _ => panic!("Unsupported case"),
-        }
         .to_string()
     }
 
     #[fixture]
     fn whoami() -> String {
         r#"
-URL:               https://my.1password.com
-Integration ID:    WADYB2CBTFBIFKESZ6AV74PUGE
-User Type:         SERVICE_ACCOUNT
+{
+  "url": "https://my.1password.com",
+  "URL": "https://my.1password.com",
+  "user_uuid": "!!!!!!!!!!!!!!!!!!!!!!!!!!",
+  "account_uuid": "++++++++++++++++++++++++++",
+  "user_type": "SERVICE_ACCOUNT",
+  "ServiceAccountType": "SERVICE_ACCOUNT"
+}
 "#
         .to_string()
     }
@@ -120,7 +161,7 @@ User Type:         SERVICE_ACCOUNT
         let mut command_executor = MockCommandExecutor::new();
         command_executor
             .expect_exec()
-            .with(eq(vec!["service-account", "ratelimit"]))
+            .with(eq(vec!["service-account", "ratelimit", "--format", "json"]))
             .returning(move |_| Ok(ratelimit.clone()));
         let metrics_collector = OpMetricsCollector::new(Box::new(command_executor));
 
@@ -150,25 +191,39 @@ User Type:         SERVICE_ACCOUNT
             100
         );
         assert_eq!(
-            OP_SERVICEACCOUNT_RATELIMIT_LIMIT
-                .get_metric_with_label_values(&["token", "read"])
-                .unwrap()
-                .get(),
-            1000
-        );
-        assert_eq!(
-            OP_SERVICEACCOUNT_RATELIMIT_USED
-                .get_metric_with_label_values(&["token", "read"])
+            OP_SERVICEACCOUNT_RATELIMIT_RESET
+                .get_metric_with_label_values(&["token", "write"])
                 .unwrap()
                 .get(),
             0
         );
         assert_eq!(
-            OP_SERVICEACCOUNT_RATELIMIT_REMAINING
+            OP_SERVICEACCOUNT_RATELIMIT_LIMIT
                 .get_metric_with_label_values(&["token", "read"])
                 .unwrap()
                 .get(),
             1000
+        );
+        assert_eq!(
+            OP_SERVICEACCOUNT_RATELIMIT_USED
+                .get_metric_with_label_values(&["token", "read"])
+                .unwrap()
+                .get(),
+            1
+        );
+        assert_eq!(
+            OP_SERVICEACCOUNT_RATELIMIT_REMAINING
+                .get_metric_with_label_values(&["token", "read"])
+                .unwrap()
+                .get(),
+            999
+        );
+        assert_eq!(
+            OP_SERVICEACCOUNT_RATELIMIT_RESET
+                .get_metric_with_label_values(&["token", "read"])
+                .unwrap()
+                .get(),
+            308
         );
         assert_eq!(
             OP_SERVICEACCOUNT_RATELIMIT_LIMIT
@@ -182,14 +237,21 @@ User Type:         SERVICE_ACCOUNT
                 .get_metric_with_label_values(&["account", "read_write"])
                 .unwrap()
                 .get(),
-            4
+            1
         );
         assert_eq!(
             OP_SERVICEACCOUNT_RATELIMIT_REMAINING
                 .get_metric_with_label_values(&["account", "read_write"])
                 .unwrap()
                 .get(),
-            996
+            999
+        );
+        assert_eq!(
+            OP_SERVICEACCOUNT_RATELIMIT_RESET
+                .get_metric_with_label_values(&["account", "read_write"])
+                .unwrap()
+                .get(),
+            83108
         );
     }
 
@@ -199,6 +261,7 @@ User Type:         SERVICE_ACCOUNT
         let mut command_executor = MockCommandExecutor::new();
         command_executor
             .expect_exec()
+            .with(eq(vec!["whoami", "--format", "json"]))
             .returning(move |_| Ok(whoami.clone()));
         let metrics_collector = OpMetricsCollector::new(Box::new(command_executor));
 
@@ -210,7 +273,8 @@ User Type:         SERVICE_ACCOUNT
             OP_SERVICEACCOUNT_WHOAMI
                 .get_metric_with_label_values(&[
                     "https://my.1password.com",
-                    "WADYB2CBTFBIFKESZ6AV74PUGE",
+                    "!!!!!!!!!!!!!!!!!!!!!!!!!!",
+                    "++++++++++++++++++++++++++",
                     "SERVICE_ACCOUNT"
                 ])
                 .unwrap()
