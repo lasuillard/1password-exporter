@@ -32,77 +32,43 @@ lazy_static! {
     .unwrap();
 }
 
-/// 1Password service account rate limit information.
-#[derive(Debug, PartialEq)]
-pub(crate) struct Ratelimit {
-    pub(crate) type_: String,
-    pub(crate) action: String,
-    pub(crate) limit: i32,
-    pub(crate) used: i32,
-    pub(crate) remaining: i32,
-    #[allow(dead_code)]
-    pub(crate) reset: String,
-}
-
-/// 1Password service account information.
-pub(crate) struct Whoami {
-    pub(crate) url: String,
-    pub(crate) integration_id: String,
-    pub(crate) user_type: String,
-}
-
 impl OpMetricsCollector {
-    fn read_ratelimit(&self) -> Vec<Ratelimit> {
+    pub(crate) fn read_ratelimit(&self) {
         let output = self
             .command_executor
             .exec(vec!["service-account", "ratelimit"])
             .unwrap();
 
         let table = crate::utils::parse_table(&output);
-        let mut result = Vec::with_capacity(table.len());
         for row in table {
-            let ratelimit = Ratelimit {
-                type_: row.get("TYPE").unwrap().to_string(),
-                action: row.get("ACTION").unwrap().to_string(),
-                limit: row.get("LIMIT").unwrap().parse().unwrap(),
-                used: row.get("USED").unwrap().parse().unwrap(),
-                remaining: row.get("REMAINING").unwrap().parse().unwrap(),
-                reset: row.get("RESET").unwrap().to_string(),
-            };
-            result.push(ratelimit);
-        }
+            let type_ = row.get("TYPE").unwrap();
+            let action = row.get("ACTION").unwrap();
+            let limit: i64 = row.get("LIMIT").unwrap().parse().unwrap();
+            let used: i64 = row.get("USED").unwrap().parse().unwrap();
+            let remaining: i64 = row.get("REMAINING").unwrap().parse().unwrap();
 
-        result
+            OP_SERVICEACCOUNT_RATELIMIT_LIMIT
+                .with_label_values(&[type_, action])
+                .set(limit as i64);
+            OP_SERVICEACCOUNT_RATELIMIT_USED
+                .with_label_values(&[type_, action])
+                .set(used as i64);
+            OP_SERVICEACCOUNT_RATELIMIT_REMAINING
+                .with_label_values(&[type_, action])
+                .set(remaining as i64);
+        }
     }
 
-    fn read_whoami(&self) -> Whoami {
+    pub(crate) fn read_whoami(&self) {
         let output = self.command_executor.exec(vec!["whoami"]).unwrap();
         let kv = crate::utils::parse_kv(&output);
 
-        Whoami {
-            url: kv.get("URL").unwrap().to_string(),
-            integration_id: kv.get("Integration ID").unwrap().to_string(),
-            user_type: kv.get("User Type").unwrap().to_string(),
-        }
-    }
+        let url = kv.get("URL").unwrap().to_string();
+        let integration_id = kv.get("Integration ID").unwrap().to_string();
+        let user_type = kv.get("User Type").unwrap().to_string();
 
-    pub(crate) fn collect_serviceaccount(&self) {
-        let ratelimit = self.read_ratelimit();
-        for rl in ratelimit {
-            OP_SERVICEACCOUNT_RATELIMIT_LIMIT
-                .with_label_values(&[&rl.type_, &rl.action])
-                .set(rl.limit as i64);
-            OP_SERVICEACCOUNT_RATELIMIT_USED
-                .with_label_values(&[&rl.type_, &rl.action])
-                .set(rl.used as i64);
-            OP_SERVICEACCOUNT_RATELIMIT_REMAINING
-                .with_label_values(&[&rl.type_, &rl.action])
-                .set(rl.remaining as i64);
-        }
-
-        let whoami = self.read_whoami();
         OP_SERVICEACCOUNT_WHOAMI
-            .with_label_values(&[&whoami.url, &whoami.integration_id, &whoami.user_type])
+            .with_label_values(&[&url, &integration_id, &user_type])
             .set(1);
     }
 }
@@ -159,79 +125,7 @@ User Type:         SERVICE_ACCOUNT
         let metrics_collector = OpMetricsCollector::new(Box::new(command_executor));
 
         // Act
-        let ratelimits = metrics_collector.read_ratelimit();
-
-        // Assert
-        assert_eq!(ratelimits.len(), 3);
-        assert_eq!(
-            ratelimits[0],
-            Ratelimit {
-                type_: "token".to_string(),
-                action: "write".to_string(),
-                limit: 100,
-                used: 0,
-                remaining: 100,
-                reset: "N/A".to_string(),
-            }
-        );
-        assert_eq!(
-            ratelimits[1],
-            Ratelimit {
-                type_: "token".to_string(),
-                action: "read".to_string(),
-                limit: 1000,
-                used: 0,
-                remaining: 1000,
-                reset: "N/A".to_string(),
-            }
-        );
-        assert_eq!(
-            ratelimits[2],
-            Ratelimit {
-                type_: "account".to_string(),
-                action: "read_write".to_string(),
-                limit: 1000,
-                used: 4,
-                remaining: 996,
-                reset: "1 hour from now".to_string(),
-            }
-        );
-    }
-
-    #[rstest]
-    fn test_read_whoami(whoami: String) {
-        // Arrange
-        let mut command_executor = MockCommandExecutor::new();
-        command_executor
-            .expect_exec()
-            .returning(move |_| Ok(whoami.clone()));
-        let metrics_collector = OpMetricsCollector::new(Box::new(command_executor));
-
-        // Act
-        let whoami = metrics_collector.read_whoami();
-
-        // Assert
-        assert_eq!(whoami.url, "https://my.1password.com");
-        assert_eq!(whoami.integration_id, "WADYB2CBTFBIFKESZ6AV74PUGE");
-        assert_eq!(whoami.user_type, "SERVICE_ACCOUNT");
-    }
-
-    #[rstest]
-    fn test_collect_serviceaccount(ratelimit: String, whoami: String) {
-        // Arrange
-        let mut command_executor = MockCommandExecutor::new();
-        command_executor
-            .expect_exec()
-            .with(eq(vec!["service-account", "ratelimit"]))
-            .returning(move |_| Ok(ratelimit.clone()));
-        command_executor
-            .expect_exec()
-            .with(eq(vec!["whoami"]))
-            .returning(move |_| Ok(whoami.clone()));
-        let metrics_collector = OpMetricsCollector::new(Box::new(command_executor));
-
-        // Act
-        metrics_collector.collect_serviceaccount();
+        metrics_collector.read_ratelimit();
 
         // Assert
         assert_eq!(
@@ -297,6 +191,21 @@ User Type:         SERVICE_ACCOUNT
                 .get(),
             996
         );
+    }
+
+    #[rstest]
+    fn test_read_whoami(whoami: String) {
+        // Arrange
+        let mut command_executor = MockCommandExecutor::new();
+        command_executor
+            .expect_exec()
+            .returning(move |_| Ok(whoami.clone()));
+        let metrics_collector = OpMetricsCollector::new(Box::new(command_executor));
+
+        // Act
+        metrics_collector.read_whoami();
+
+        // Assert
         assert_eq!(
             OP_SERVICEACCOUNT_WHOAMI
                 .get_metric_with_label_values(&[

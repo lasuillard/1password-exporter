@@ -61,7 +61,10 @@ impl OpMetricsCollector {
                 Metrics::Document => self.collect_document(),
                 Metrics::Group => self.collect_group(),
                 Metrics::Item => self.collect_item(),
-                Metrics::ServiceAccount => self.collect_serviceaccount(),
+                Metrics::ServiceAccount => {
+                    self.read_ratelimit();
+                    self.read_whoami();
+                }
                 Metrics::User => self.collect_user(),
                 Metrics::Vault => self.collect_vault(),
             }
