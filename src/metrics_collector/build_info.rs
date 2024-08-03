@@ -1,7 +1,7 @@
 use super::OpMetricsCollector;
 
 impl OpMetricsCollector {
-    pub(crate) fn collect_buildinfo(&self) {
+    pub(crate) fn read_buildinfo(&self) {
         log::error!("Not implemented");
     }
 }

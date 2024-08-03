@@ -1,7 +1,7 @@
 use super::OpMetricsCollector;
 
 impl OpMetricsCollector {
-    pub(crate) fn collect_document(&self) {
+    pub(crate) fn read_document(&self) {
         log::error!("Not implemented");
     }
 }

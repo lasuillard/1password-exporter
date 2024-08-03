@@ -56,17 +56,17 @@ impl OpMetricsCollector {
         // TODO: Collect all metrics in async manner (use Tokio)
         for metric in metrics {
             match metric {
-                Metrics::Account => self.collect_account(),
-                Metrics::BuildInfo => self.collect_buildinfo(),
-                Metrics::Document => self.collect_document(),
-                Metrics::Group => self.collect_group(),
-                Metrics::Item => self.collect_item(),
+                Metrics::Account => self.read_account(),
+                Metrics::BuildInfo => self.read_buildinfo(),
+                Metrics::Document => self.read_document(),
+                Metrics::Group => self.read_group(),
+                Metrics::Item => self.read_item(),
                 Metrics::ServiceAccount => {
                     self.read_ratelimit();
                     self.read_whoami();
                 }
-                Metrics::User => self.collect_user(),
-                Metrics::Vault => self.collect_vault(),
+                Metrics::User => self.read_user(),
+                Metrics::Vault => self.read_vault(),
             }
         }
     }

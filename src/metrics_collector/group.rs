@@ -1,7 +1,7 @@
 use super::OpMetricsCollector;
 
 impl OpMetricsCollector {
-    pub(crate) fn collect_group(&self) {
+    pub(crate) fn read_group(&self) {
         log::error!("Not implemented");
     }
 }
