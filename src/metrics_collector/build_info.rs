@@ -6,7 +6,7 @@ use super::OpMetricsCollector;
 lazy_static! {
     static ref OP_EXPORTER_BUILDINFO: IntGaugeVec = register_int_gauge_vec!(
         "op_exporter_buildinfo",
-        "1Password CLI build information.",
+        "1Password exporter build information.",
         &["version"]
     )
     .unwrap();
