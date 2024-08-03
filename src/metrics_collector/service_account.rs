@@ -57,20 +57,17 @@ impl OpMetricsCollector {
             .command_executor
             .exec(vec!["service-account", "ratelimit"])
             .unwrap();
-        let lines = output.trim().split('\n').collect::<Vec<&str>>();
 
-        // Iterate skipping the header
-        // TODO: Better table deserialization with serde
-        let mut result = Vec::new();
-        for line in lines.iter().skip(1) {
-            let fields = line.split_ascii_whitespace().collect::<Vec<&str>>();
+        let table = crate::utils::parse_table(&output);
+        let mut result = Vec::with_capacity(table.len());
+        for row in table {
             let ratelimit = Ratelimit {
-                type_: fields[0].to_string(),
-                action: fields[1].to_string(),
-                limit: fields[2].parse().unwrap(),
-                used: fields[3].parse().unwrap(),
-                remaining: fields[4].parse().unwrap(),
-                reset: fields[5..].join(" ").to_string(),
+                type_: row.get("TYPE").unwrap().to_string(),
+                action: row.get("ACTION").unwrap().to_string(),
+                limit: row.get("LIMIT").unwrap().parse().unwrap(),
+                used: row.get("USED").unwrap().parse().unwrap(),
+                remaining: row.get("REMAINING").unwrap().parse().unwrap(),
+                reset: row.get("RESET").unwrap().to_string(),
             };
             result.push(ratelimit);
         }
