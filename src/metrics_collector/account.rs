@@ -2,6 +2,7 @@ use lazy_static::lazy_static;
 #[cfg(test)]
 use mockall::predicate::*;
 use prometheus::{register_int_gauge_vec, IntGaugeVec};
+use serde::Deserialize;
 
 use super::OpMetricsCollector;
 
@@ -9,24 +10,39 @@ lazy_static! {
     static ref OP_ACCOUNT_CURRENT: IntGaugeVec = register_int_gauge_vec!(
         "op_account_current",
         "Current 1Password account information.",
-        &["id", "name", "domain", "type", "state"]
+        &["id", "name", "domain", "type", "state", "created_at"]
     )
     .unwrap();
 }
 
+#[derive(Deserialize, Debug)]
+struct Account {
+    id: String,
+    name: String,
+    domain: String,
+    #[serde(rename = "type")]
+    type_: String,
+    state: String,
+    created_at: String,
+}
+
 impl OpMetricsCollector {
     pub(crate) fn read_account(&self) {
-        let output = self.command_executor.exec(vec!["account", "get"]).unwrap();
-        let kv = crate::utils::parse_kv(&output);
-
-        let id = kv.get("ID").unwrap();
-        let name = kv.get("Name").unwrap();
-        let domain = kv.get("Domain").unwrap();
-        let type_ = kv.get("Type").unwrap();
-        let state = kv.get("State").unwrap();
+        let output = self
+            .command_executor
+            .exec(vec!["account", "get", "--format", "json"])
+            .unwrap();
+        let account: Account = serde_json::from_str(&output).unwrap();
 
         OP_ACCOUNT_CURRENT
-            .with_label_values(&[id, name, domain, type_, state])
+            .with_label_values(&[
+                &account.id,
+                &account.name,
+                &account.domain,
+                &account.type_,
+                &account.state,
+                &account.created_at,
+            ])
             .set(1);
     }
 }
@@ -42,15 +58,17 @@ mod tests {
         let mut command_executor = MockCommandExecutor::new();
         command_executor
             .expect_exec()
-            .with(eq(vec!["account", "get"]))
+            .with(eq(vec!["account", "get", "--format", "json"]))
             .returning(|_| {
                 Ok(r#"
-ID:         ??????????????????????????
-Name:       **********
-Domain:     my
-Type:       FAMILY
-State:      ACTIVE
-Created:    1 year ago
+{
+  "id": "??????????????????????????",
+  "name": "**********",
+  "domain": "my",
+  "type": "FAMILY",
+  "state": "ACTIVE",
+  "created_at": "2023-03-19T05:06:27Z"
+}
 "#
                 .to_string())
             });
@@ -68,6 +86,7 @@ Created:    1 year ago
                     "my",
                     "FAMILY",
                     "ACTIVE",
+                    "2023-03-19T05:06:27Z",
                 ])
                 .unwrap()
                 .get(),
