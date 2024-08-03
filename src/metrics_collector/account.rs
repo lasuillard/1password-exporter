@@ -49,18 +49,14 @@ impl OpMetricsCollector {
 
 #[cfg(test)]
 mod tests {
+    use rstest::*;
+
     use super::*;
     use crate::command_executor::MockCommandExecutor;
 
-    #[test]
-    fn test_read_account() {
-        // Arrange
-        let mut command_executor = MockCommandExecutor::new();
-        command_executor
-            .expect_exec()
-            .with(eq(vec!["account", "get", "--format", "json"]))
-            .returning(|_| {
-                Ok(r#"
+    #[fixture]
+    fn account() -> String {
+        r#"
 {
   "id": "??????????????????????????",
   "name": "**********",
@@ -70,8 +66,17 @@ mod tests {
   "created_at": "2023-03-19T05:06:27Z"
 }
 "#
-                .to_string())
-            });
+        .to_string()
+    }
+
+    #[rstest]
+    fn test_read_account(account: String) {
+        // Arrange
+        let mut command_executor = MockCommandExecutor::new();
+        command_executor
+            .expect_exec()
+            .with(eq(vec!["account", "get", "--format", "json"]))
+            .returning(move |_| Ok(account.clone()));
         let collector = OpMetricsCollector::new(Box::new(command_executor));
 
         // Act
