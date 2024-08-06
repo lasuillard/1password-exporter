@@ -9,31 +9,31 @@ use super::OpMetricsCollector;
 lazy_static! {
     static ref OP_SERVICEACCOUNT_RATELIMIT_USED: IntGaugeVec = register_int_gauge_vec!(
         "op_serviceaccount_ratelimit_used",
-        "1Password API rate limit used.",
+        "API rate limit used.",
         &["type", "action"]
     )
     .unwrap();
     static ref OP_SERVICEACCOUNT_RATELIMIT_LIMIT: IntGaugeVec = register_int_gauge_vec!(
         "op_serviceaccount_ratelimit_limit",
-        "1Password API rate limit.",
+        "API rate limit.",
         &["type", "action"]
     )
     .unwrap();
     static ref OP_SERVICEACCOUNT_RATELIMIT_REMAINING: IntGaugeVec = register_int_gauge_vec!(
         "op_serviceaccount_ratelimit_remaining",
-        "1Password API rate limit remaining.",
+        "API rate limit remaining.",
         &["type", "action"]
     )
     .unwrap();
     static ref OP_SERVICEACCOUNT_RATELIMIT_RESET: IntGaugeVec = register_int_gauge_vec!(
         "op_serviceaccount_ratelimit_reset_seconds",
-        "1Password API rate limit remaining.",
+        "API rate limit remaining.",
         &["type", "action"]
     )
     .unwrap();
     static ref OP_SERVICEACCOUNT_WHOAMI: IntGaugeVec = register_int_gauge_vec!(
         "op_serviceaccount_whoami",
-        "1Password service account information.",
+        "Current service account information.",
         &["url", "user_uuid", "account_uuid", "user_type"]
     )
     .unwrap();

@@ -7,8 +7,9 @@ use serde::Deserialize;
 use super::OpMetricsCollector;
 
 lazy_static! {
-    static ref OP_DOCUMENT_TOTAL: IntGaugeVec =
-        register_int_gauge_vec!("op_document_total", "Total number of documents.", &[]).unwrap();
+    static ref OP_DOCUMENT_COUNT_TOTAL: IntGaugeVec =
+        register_int_gauge_vec!("op_document_count_total", "Total number of documents.", &[])
+            .unwrap();
 }
 
 #[derive(Deserialize, Debug)]
@@ -51,7 +52,7 @@ impl OpMetricsCollector {
             .unwrap();
         let documents: Vec<Document> = serde_json::from_str(&output).unwrap();
 
-        OP_DOCUMENT_TOTAL
+        OP_DOCUMENT_COUNT_TOTAL
             .with_label_values(&[])
             .set(documents.len() as i64);
     }
@@ -106,7 +107,7 @@ mod tests {
 
         // Assert
         assert_eq!(
-            OP_DOCUMENT_TOTAL
+            OP_DOCUMENT_COUNT_TOTAL
                 .get_metric_with_label_values(&[])
                 .unwrap()
                 .get(),

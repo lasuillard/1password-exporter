@@ -7,8 +7,8 @@ use serde::Deserialize;
 use super::OpMetricsCollector;
 
 lazy_static! {
-    static ref OP_ITEM_TOTAL: IntGaugeVec =
-        register_int_gauge_vec!("op_item_total", "Total number of items.", &[]).unwrap();
+    static ref OP_ITEM_COUNT_TOTAL: IntGaugeVec =
+        register_int_gauge_vec!("op_item_count_total", "Total number of items.", &[]).unwrap();
 }
 
 #[derive(Deserialize, Debug)]
@@ -55,7 +55,9 @@ impl OpMetricsCollector {
             .unwrap();
         let items: Vec<Item> = serde_json::from_str(&output).unwrap();
 
-        OP_ITEM_TOTAL.with_label_values(&[]).set(items.len() as i64);
+        OP_ITEM_COUNT_TOTAL
+            .with_label_values(&[])
+            .set(items.len() as i64);
     }
 }
 
@@ -109,7 +111,7 @@ mod tests {
 
         // Assert
         assert_eq!(
-            OP_ITEM_TOTAL
+            OP_ITEM_COUNT_TOTAL
                 .get_metric_with_label_values(&[])
                 .unwrap()
                 .get(),

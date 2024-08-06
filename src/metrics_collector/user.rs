@@ -7,12 +7,8 @@ use serde::Deserialize;
 use super::OpMetricsCollector;
 
 lazy_static! {
-    static ref OP_USER_TOTAL: IntGaugeVec = register_int_gauge_vec!(
-        "op_user_total",
-        "Total number of users in current account.",
-        &[]
-    )
-    .unwrap();
+    static ref OP_USER_TOTAL: IntGaugeVec =
+        register_int_gauge_vec!("op_user_count_total", "Total number of users.", &[]).unwrap();
 }
 
 #[derive(Deserialize, Debug)]

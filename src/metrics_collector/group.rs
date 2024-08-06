@@ -7,12 +7,8 @@ use serde::Deserialize;
 use super::OpMetricsCollector;
 
 lazy_static! {
-    static ref OP_GROUP_TOTAL: IntGaugeVec = register_int_gauge_vec!(
-        "op_group_total",
-        "Total number of groups in current account.",
-        &[]
-    )
-    .unwrap();
+    static ref OP_GROUP_COUNT_TOTAL: IntGaugeVec =
+        register_int_gauge_vec!("op_group_count_total", "Total number of groups.", &[]).unwrap();
 }
 
 #[derive(Deserialize, Debug)]
@@ -37,7 +33,7 @@ impl OpMetricsCollector {
             .unwrap();
         let groups: Vec<Group> = serde_json::from_str(&output).unwrap();
 
-        OP_GROUP_TOTAL
+        OP_GROUP_COUNT_TOTAL
             .with_label_values(&[])
             .set(groups.len() as i64);
     }
@@ -102,7 +98,7 @@ mod tests {
 
         // Assert
         assert_eq!(
-            OP_GROUP_TOTAL
+            OP_GROUP_COUNT_TOTAL
                 .get_metric_with_label_values(&[])
                 .unwrap()
                 .get(),
