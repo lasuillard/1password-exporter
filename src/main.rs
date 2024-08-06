@@ -27,6 +27,14 @@ struct Args {
     /// Metrics to collect. Only metrics not consuming API rate enabled by default.
     #[arg(short, long, default_values = ["account", "group", "user", "service-account", "build-info"])]
     metrics: Vec<Metrics>,
+
+    /// Path to 1Password CLI binary.
+    #[arg(long, default_value = "op")]
+    op_path: String,
+
+    /// Service account token to pass to the 1Password CLI.
+    #[arg(long)]
+    service_account_token: Option<String>,
 }
 
 #[tokio::main]
@@ -39,6 +47,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         TerminalMode::Mixed,
         ColorChoice::Auto,
     )?;
+    log::debug!("Logger initialized.");
 
-    crate::server::run_server(args.host, args.port, args.metrics).await
+    crate::server::run_server(
+        args.host,
+        args.port,
+        args.metrics,
+        args.op_path,
+        args.service_account_token,
+    )
+    .await
 }

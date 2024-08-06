@@ -13,9 +13,11 @@ use crate::{command_executor::OpCommandExecutor,
 async fn serve(
     _req: Request<impl hyper::body::Body>,
     metrics: Vec<Metrics>,
+    op_path: String,
+    service_account_token: Option<String>,
 ) -> Result<Response<Full<Bytes>>, hyper::Error> {
     // Collect all metrics
-    let command_executor = OpCommandExecutor {};
+    let command_executor = OpCommandExecutor::new(op_path, service_account_token);
     let metrics_collector = OpMetricsCollector::new(Box::new(command_executor));
     // TODO: Only collect required metrics (read from config)
     metrics_collector.collect(metrics);
@@ -40,18 +42,41 @@ pub(crate) async fn run_server(
     host: String,
     port: u16,
     metrics: Vec<Metrics>,
+    op_path: String,
+    service_account_token: Option<String>,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let addr: SocketAddr = format!("{host}:{port}").parse()?;
-    let listener = TcpListener::bind(addr).await?;
+
+    log::info!("Enabled metrics: {:?}", metrics);
+    log::info!("Using 1Password CLI: {}", op_path);
+    if service_account_token.is_some() {
+        log::warn!("Service account token explicitly set.");
+    }
     log::info!("Listening on http://{}", addr);
+
+    let listener = TcpListener::bind(addr).await?;
     loop {
         let (tcp, _) = listener.accept().await?;
         let io = TokioIo::new(tcp);
-        let inner = metrics.clone();
+
+        let metrics = metrics.clone();
+        let op_path = op_path.clone();
+        let service_account_token = service_account_token.clone();
+
         tokio::task::spawn(async move {
             if let Err(err) = http1::Builder::new()
                 .timer(TokioTimer::new())
-                .serve_connection(io, service_fn(move |req| serve(req, inner.clone())))
+                .serve_connection(
+                    io,
+                    service_fn(move |req| {
+                        serve(
+                            req,
+                            metrics.clone(),
+                            op_path.clone(),
+                            service_account_token.clone(),
+                        )
+                    }),
+                )
                 .await
             {
                 log::error!("Error serving connection: {:?}", err);
