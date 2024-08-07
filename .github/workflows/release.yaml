@@ -37,6 +37,8 @@ jobs:
         id: build
         run: |
           cargo build --verbose --release --target ${{ matrix.target }}
+
+          mkdir ${{ env.OUTPUT_DIR }}
           binary_path="${{ env.OUTPUT_DIR }}/onepassword-exporter-${{ matrix.target }}"
           mv target/${{ matrix.target }}/release/onepassword-exporter "$binary_path"
 
