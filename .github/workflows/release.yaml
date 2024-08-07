@@ -21,7 +21,7 @@ jobs:
           - platform: ubuntu-latest
             target: x86_64-unknown-linux-gnu
 
-    name: Build and Release (${{ matrix.target }})
+    name: Build (${{ matrix.target }})
     runs-on: ${{ matrix.platform }}
     timeout-minutes: 15
     steps:
