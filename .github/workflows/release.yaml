@@ -33,6 +33,9 @@ jobs:
           rustup show
           rustup target add ${{ matrix.target }}
 
+      - name: Manage Rust cache
+        uses: Swatinem/rust-cache@v2
+
       - name: Build binary
         id: build
         run: |
