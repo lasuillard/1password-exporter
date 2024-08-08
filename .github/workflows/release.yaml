@@ -51,7 +51,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: dist-${{ matrix.target }}
-          path: ${{ steps.build.outputs.binary_path }}
+          path: ${{ steps.build.outputs.binary-path }}
 
   release:
     name: Release
