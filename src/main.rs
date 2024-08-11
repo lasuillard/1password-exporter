@@ -84,6 +84,8 @@ mod tests {
                 "service-account",
                 "user",
                 "vault",
+                "--service-account-token",
+                "ops_blahblah",
             ]);
             _main(args).await.unwrap();
         });
