@@ -25,7 +25,7 @@ struct Args {
     port: u16,
 
     /// Metrics to collect. Only metrics not consuming API rate enabled by default.
-    #[arg(short, long, default_values = ["account", "group", "user", "service-account", "build-info"])]
+    #[arg(short, long, num_args = 1.., default_values = ["account", "group", "user", "service-account", "build-info"])]
     metrics: Vec<Metrics>,
 
     /// Path to 1Password CLI binary.
