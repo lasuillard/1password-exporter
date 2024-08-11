@@ -47,17 +47,10 @@ mod tests {
 
     #[fixture]
     fn user() -> String {
-        r#"
-[
-  {
-    "id": "??????????????????????????",
-    "name": "Yuchan Lee",
-    "email": "lasuillard@gmail.com",
-    "type": "MEMBER",
-    "state": "ACTIVE"
-  }
-]
-"#
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/fixtures/user.json"
+        ))
         .to_string()
     }
 

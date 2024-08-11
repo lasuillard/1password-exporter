@@ -56,16 +56,10 @@ mod tests {
 
     #[fixture]
     fn account() -> String {
-        r#"
-{
-  "id": "??????????????????????????",
-  "name": "**********",
-  "domain": "my",
-  "type": "FAMILY",
-  "state": "ACTIVE",
-  "created_at": "2023-03-19T05:06:27Z"
-}
-"#
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/fixtures/account.json"
+        ))
         .to_string()
     }
 

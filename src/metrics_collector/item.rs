@@ -70,23 +70,10 @@ mod tests {
 
     #[fixture]
     fn item() -> String {
-        r#"
-[
-  {
-    "id": "5zouxmnesgyexgg2sld32g627a",
-    "title": "Empty Document",
-    "version": 2,
-    "vault": {
-      "id": "qbdrg7xppiklcy74pf4uw5cmka",
-      "name": "Infra: Home Server"
-    },
-    "category": "DOCUMENT",
-    "last_edited_by": "K3MAYGGYRZA2XN2AMQ5ADZJ6VI",
-    "created_at": "2024-08-04T04:06:31Z",
-    "updated_at": "2024-08-04T04:06:58Z"
-  }
-]
-"#
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/fixtures/item.json"
+        ))
         .to_string()
     }
 

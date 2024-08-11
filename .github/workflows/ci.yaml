@@ -56,6 +56,13 @@ jobs:
           cargo llvm-cov nextest --workspace --lcov --output-path lcov.info
           cargo llvm-cov report --summary-only
 
+      - name: Upload test results to Codecov
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+          files: target/nextest/default/junit.xml
+
       - name: Upload coverage report
         uses: codecov/codecov-action@v4
         with:

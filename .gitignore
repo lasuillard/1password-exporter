@@ -1,4 +1,5 @@
 lcov.info
+*.log
 
 # Created by https://www.toptal.com/developers/gitignore/api/osx,rust,linux,windows,visualstudiocode
 # Edit at https://www.toptal.com/developers/gitignore?templates=osx,rust,linux,windows,visualstudiocode

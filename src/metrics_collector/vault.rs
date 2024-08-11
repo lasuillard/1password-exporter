@@ -44,15 +44,10 @@ mod tests {
 
     #[fixture]
     fn vault() -> String {
-        r#"
-[
-  {
-    "id": "qbdrg7xppiklcy74pf4uw5cmka",
-    "name": "Infra: Home Server",
-    "content_version": 66
-  }
-]
-"#
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/fixtures/vault.json"
+        ))
         .to_string()
     }
 
