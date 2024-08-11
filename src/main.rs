@@ -64,6 +64,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 mod tests {
     use super::*;
 
+    const MOCK_OP: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/mock_op.bash");
+
     #[tokio::test]
     async fn test_metrics_serving() {
         let handle = tokio::spawn(async {
@@ -72,7 +74,7 @@ mod tests {
                 "--log-level",
                 "DEBUG",
                 "--op-path",
-                "/workspaces/1password-exporter/tests/mock_op.bash",
+                MOCK_OP,
                 "--metrics",
                 "account",
             ]);
