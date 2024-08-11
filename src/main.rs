@@ -37,18 +37,13 @@ struct Args {
     service_account_token: Option<String>,
 }
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let args = Args::parse();
-
+async fn _main(args: Args) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     TermLogger::init(
         args.log_level,
         Config::default(),
         TerminalMode::Mixed,
         ColorChoice::Auto,
     )?;
-    log::debug!("Logger initialized.");
-
     crate::server::run_server(
         args.host,
         args.port,
@@ -57,4 +52,49 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         args.service_account_token,
     )
     .await
+}
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    let args = Args::parse();
+    _main(args).await
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_metrics_serving() {
+        let handle = tokio::spawn(async {
+            let args = Args::parse_from(&[
+                "onepassword-exporter",
+                "--log-level",
+                "DEBUG",
+                "--op-path",
+                "/workspaces/1password-exporter/tests/mock_op.bash",
+                "--metrics",
+                "account",
+            ]);
+            _main(args).await.unwrap();
+        });
+
+        let body = reqwest::get("http://localhost:9999")
+            .await
+            .unwrap()
+            .text()
+            .await
+            .unwrap();
+
+        assert_eq!(
+            body,
+            r#"
+# HELP op_account_current Current 1Password account information.
+# TYPE op_account_current gauge
+op_account_current{created_at="2023-03-19T05:06:27Z",domain="my",id="??????????????????????????",name="**********",state="ACTIVE",type="FAMILY"} 1
+"#.strip_prefix("\n").unwrap()  // NOTE: Added preceding newline to make it readable
+        );
+
+        handle.abort();
+    }
 }
