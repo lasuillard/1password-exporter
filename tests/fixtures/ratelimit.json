@@ -1,0 +1,26 @@
+[
+    {
+        "type": "token",
+        "action": "write",
+        "limit": 100,
+        "used": 0,
+        "remaining": 100,
+        "reset": 0
+    },
+    {
+        "type": "token",
+        "action": "read",
+        "limit": 1000,
+        "used": 1,
+        "remaining": 999,
+        "reset": 308
+    },
+    {
+        "type": "account",
+        "action": "read_write",
+        "limit": 1000,
+        "used": 1,
+        "remaining": 999,
+        "reset": 83108
+    }
+]

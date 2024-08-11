@@ -109,49 +109,19 @@ mod tests {
 
     #[fixture]
     fn ratelimit() -> String {
-        r#"
-[
-  {
-    "type": "token",
-    "action": "write",
-    "limit": 100,
-    "used": 0,
-    "remaining": 100,
-    "reset": 0
-  },
-  {
-    "type": "token",
-    "action": "read",
-    "limit": 1000,
-    "used": 1,
-    "remaining": 999,
-    "reset": 308
-  },
-  {
-    "type": "account",
-    "action": "read_write",
-    "limit": 1000,
-    "used": 1,
-    "remaining": 999,
-    "reset": 83108
-  }
-]
-"#
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/fixtures/ratelimit.json"
+        ))
         .to_string()
     }
 
     #[fixture]
     fn whoami() -> String {
-        r#"
-{
-  "url": "https://my.1password.com",
-  "URL": "https://my.1password.com",
-  "user_uuid": "!!!!!!!!!!!!!!!!!!!!!!!!!!",
-  "account_uuid": "++++++++++++++++++++++++++",
-  "user_type": "SERVICE_ACCOUNT",
-  "ServiceAccountType": "SERVICE_ACCOUNT"
-}
-"#
+        include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/tests/fixtures/whoami.json"
+        ))
         .to_string()
     }
 
