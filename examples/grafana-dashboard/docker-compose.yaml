@@ -1,0 +1,64 @@
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    ports:
+      - 9090:9090
+    volumes:
+      - prometheus-data:/prometheus
+    configs:
+      - source: prometheus.yaml
+        target: /etc/prometheus/prometheus.yml
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - 3000:3000
+    configs:
+      - source: datasource.yaml
+        target: /etc/grafana/provisioning/datasources/datasource.yaml
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+
+configs:
+  datasource.yaml:
+    content: |
+      apiVersion: 1
+      datasources:
+      - name: Prometheus
+        type: prometheus
+        url: http://prometheus:9090
+        isDefault: true
+        access: proxy
+        editable: true
+
+  prometheus.yaml:
+    content: |
+      global:
+        scrape_interval: 30s
+        scrape_timeout: 15s
+        evaluation_interval: 15s
+      alerting:
+        alertmanagers:
+        - static_configs:
+          - targets: []
+          scheme: http
+          timeout: 10s
+          api_version: v1
+      scrape_configs:
+      - job_name: onepassword
+        honor_timestamps: true
+        scrape_interval: 30s
+        scrape_timeout: 15s
+        metrics_path: /metrics
+        scheme: http
+        static_configs:
+        - targets:
+          - host.docker.internal:9999
+
+volumes:
+  prometheus-data:
