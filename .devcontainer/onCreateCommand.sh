@@ -9,7 +9,8 @@ curl -sS https://downloads.1password.com/linux/keys/1password.asc | sudo gpg --d
   && echo "deb [arch=${ARCH} signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/${ARCH} stable main" | sudo tee /etc/apt/sources.list.d/1password.list \
 
 sudo apt-get update && sudo apt-get install -y \
-  1password-cli
+  1password-cli \
+  bash-completion
 
 curl -fsSL "https://github.com/cargo-bins/cargo-binstall/releases/download/v${CARGO_BINSTALL_VERSION}/cargo-binstall-$(rustc -vV | sed -n 's|host: ||p').tgz" \
     | tar --extract --gzip --directory "${CARGO_HOME}/bin"

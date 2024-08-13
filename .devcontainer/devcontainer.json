@@ -1,23 +1,24 @@
 {
-	"name": "lasuillard/1password-exporter",
-	"image": "mcr.microsoft.com/devcontainers/rust:1-1-bookworm",
-	"features": {
-		"ghcr.io/devcontainers-contrib/features/pre-commit:2": {}
-	},
-	"onCreateCommand": "./.devcontainer/onCreateCommand.sh",
-	"postAttachCommand": "pre-commit install",
-	"customizations": {
-		"vscode": {
-			"extensions": [
-				"ldez.ignore-files",
-				"gruntfuggly.todo-tree",
-				"redhat.vscode-yaml",
-				"tamasfe.even-better-toml",
-				"streetsidesoftware.code-spell-checker",
-				"EditorConfig.EditorConfig",
-				"vadimcn.vscode-lldb",
-				"rust-lang.rust-analyzer"
-			]
-		}
-	}
+  "name": "lasuillard/1password-exporter",
+  "image": "mcr.microsoft.com/devcontainers/rust:1-1-bookworm",
+  "features": {
+    "ghcr.io/devcontainers-contrib/features/pre-commit:2": {},
+    "ghcr.io/devcontainers/features/docker-in-docker": {}
+  },
+  "onCreateCommand": "./.devcontainer/onCreateCommand.sh",
+  "postAttachCommand": "pre-commit install",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ldez.ignore-files",
+        "gruntfuggly.todo-tree",
+        "redhat.vscode-yaml",
+        "tamasfe.even-better-toml",
+        "streetsidesoftware.code-spell-checker",
+        "EditorConfig.EditorConfig",
+        "vadimcn.vscode-lldb",
+        "rust-lang.rust-analyzer"
+      ]
+    }
+  }
 }
