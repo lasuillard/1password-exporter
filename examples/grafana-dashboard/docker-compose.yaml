@@ -17,9 +17,13 @@ services:
     image: grafana/grafana:latest
     ports:
       - 3000:3000
+    volumes:
+      - ./dashboard.json:/var/lib/grafana/dashboards/dashboard.json
     configs:
       - source: datasource.yaml
         target: /etc/grafana/provisioning/datasources/datasource.yaml
+      - source: dashboards.yaml
+        target: /etc/grafana/provisioning/dashboards/default.yaml
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
@@ -35,6 +39,19 @@ configs:
         isDefault: true
         access: proxy
         editable: true
+
+  dashboards.yaml:
+    content: |
+      apiVersion: 1
+      providers:
+        - name: "default"
+          orgId: 1
+          folder: ""
+          type: file
+          disableDeletion: false
+          updateIntervalSeconds: 60
+          options:
+            path: /var/lib/grafana/dashboards
 
   prometheus.yaml:
     content: |
