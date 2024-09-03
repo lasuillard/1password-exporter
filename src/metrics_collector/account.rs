@@ -49,13 +49,14 @@ impl OpMetricsCollector {
 
 #[cfg(test)]
 mod tests {
+    use anyhow::Result;
     use rstest::*;
 
     use super::*;
     use crate::testing::metrics_collector;
 
     #[rstest]
-    fn test_read_account(metrics_collector: OpMetricsCollector) {
+    fn test_read_account(metrics_collector: OpMetricsCollector) -> Result<()> {
         // Act
         metrics_collector.read_account();
 
@@ -69,10 +70,11 @@ mod tests {
                     "FAMILY",
                     "ACTIVE",
                     "2023-03-19T05:06:27Z",
-                ])
-                .unwrap()
+                ])?
                 .get(),
             1
         );
+
+        Ok(())
     }
 }

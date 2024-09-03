@@ -19,6 +19,7 @@ simplelog = "0.12.2"
 tokio = { version = "1.39.2", features = ["full"] }
 
 [dev-dependencies]
+anyhow = "1.0.86"
 mockall = "0.13.0"
 reqwest = "0.12.5"
 rstest = "0.21.0"

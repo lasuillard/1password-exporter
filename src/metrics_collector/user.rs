@@ -40,22 +40,19 @@ impl OpMetricsCollector {
 
 #[cfg(test)]
 mod tests {
+    use anyhow::Result;
     use rstest::*;
 
     use super::*;
     use crate::testing::metrics_collector;
 
     #[rstest]
-    fn test_read_user(metrics_collector: OpMetricsCollector) {
+    fn test_read_user(metrics_collector: OpMetricsCollector) -> Result<()> {
         metrics_collector.read_user();
 
         // Assert
-        assert_eq!(
-            OP_USER_TOTAL
-                .get_metric_with_label_values(&[])
-                .unwrap()
-                .get(),
-            1
-        );
+        assert_eq!(OP_USER_TOTAL.get_metric_with_label_values(&[])?.get(), 1);
+
+        Ok(())
     }
 }

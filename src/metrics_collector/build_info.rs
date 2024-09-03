@@ -22,23 +22,25 @@ impl OpMetricsCollector {
 
 #[cfg(test)]
 mod tests {
+    use anyhow::Result;
     use rstest::*;
 
     use super::*;
     use crate::testing::metrics_collector;
 
     #[rstest]
-    fn test_read_buildinfo(metrics_collector: OpMetricsCollector) {
+    fn test_read_buildinfo(metrics_collector: OpMetricsCollector) -> Result<()> {
         // Act
         metrics_collector.read_buildinfo();
 
         // Assert
         assert_eq!(
             OP_EXPORTER_BUILDINFO
-                .get_metric_with_label_values(&["0.1.0"])
-                .unwrap()
+                .get_metric_with_label_values(&["0.1.0"])?
                 .get(),
             1
         );
+
+        Ok(())
     }
 }

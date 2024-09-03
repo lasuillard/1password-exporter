@@ -41,22 +41,24 @@ impl OpMetricsCollector {
 
 #[cfg(test)]
 mod tests {
+    use anyhow::Result;
     use rstest::*;
 
     use super::*;
     use crate::testing::metrics_collector;
 
     #[rstest]
-    fn test_read_group(metrics_collector: OpMetricsCollector) {
+    fn test_read_group(metrics_collector: OpMetricsCollector) -> Result<()> {
         metrics_collector.read_group();
 
         // Assert
         assert_eq!(
             OP_GROUP_COUNT_TOTAL
-                .get_metric_with_label_values(&[])
-                .unwrap()
+                .get_metric_with_label_values(&[])?
                 .get(),
             4
         );
+
+        Ok(())
     }
 }

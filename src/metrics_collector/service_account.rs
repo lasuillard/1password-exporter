@@ -102,104 +102,95 @@ impl OpMetricsCollector {
 
 #[cfg(test)]
 mod tests {
+    use anyhow::{Ok, Result};
     use rstest::*;
 
     use super::*;
     use crate::testing::metrics_collector;
 
     #[rstest]
-    fn test_read_ratelimit(metrics_collector: OpMetricsCollector) {
+    fn test_read_ratelimit(metrics_collector: OpMetricsCollector) -> Result<()> {
         metrics_collector.read_ratelimit();
 
         // Assert
         assert_eq!(
             OP_SERVICEACCOUNT_RATELIMIT_LIMIT
-                .get_metric_with_label_values(&["token", "write"])
-                .unwrap()
+                .get_metric_with_label_values(&["token", "write"])?
                 .get(),
             100
         );
         assert_eq!(
             OP_SERVICEACCOUNT_RATELIMIT_USED
-                .get_metric_with_label_values(&["token", "write"])
-                .unwrap()
+                .get_metric_with_label_values(&["token", "write"])?
                 .get(),
             0
         );
         assert_eq!(
             OP_SERVICEACCOUNT_RATELIMIT_REMAINING
-                .get_metric_with_label_values(&["token", "write"])
-                .unwrap()
+                .get_metric_with_label_values(&["token", "write"])?
                 .get(),
             100
         );
         assert_eq!(
             OP_SERVICEACCOUNT_RATELIMIT_RESET
-                .get_metric_with_label_values(&["token", "write"])
-                .unwrap()
+                .get_metric_with_label_values(&["token", "write"])?
                 .get(),
             0
         );
         assert_eq!(
             OP_SERVICEACCOUNT_RATELIMIT_LIMIT
-                .get_metric_with_label_values(&["token", "read"])
-                .unwrap()
+                .get_metric_with_label_values(&["token", "read"])?
                 .get(),
             1000
         );
         assert_eq!(
             OP_SERVICEACCOUNT_RATELIMIT_USED
-                .get_metric_with_label_values(&["token", "read"])
-                .unwrap()
+                .get_metric_with_label_values(&["token", "read"])?
                 .get(),
             1
         );
         assert_eq!(
             OP_SERVICEACCOUNT_RATELIMIT_REMAINING
-                .get_metric_with_label_values(&["token", "read"])
-                .unwrap()
+                .get_metric_with_label_values(&["token", "read"])?
                 .get(),
             999
         );
         assert_eq!(
             OP_SERVICEACCOUNT_RATELIMIT_RESET
-                .get_metric_with_label_values(&["token", "read"])
-                .unwrap()
+                .get_metric_with_label_values(&["token", "read"])?
                 .get(),
             308
         );
         assert_eq!(
             OP_SERVICEACCOUNT_RATELIMIT_LIMIT
-                .get_metric_with_label_values(&["account", "read_write"])
-                .unwrap()
+                .get_metric_with_label_values(&["account", "read_write"])?
                 .get(),
             1000
         );
         assert_eq!(
             OP_SERVICEACCOUNT_RATELIMIT_USED
-                .get_metric_with_label_values(&["account", "read_write"])
-                .unwrap()
+                .get_metric_with_label_values(&["account", "read_write"])?
                 .get(),
             1
         );
         assert_eq!(
             OP_SERVICEACCOUNT_RATELIMIT_REMAINING
-                .get_metric_with_label_values(&["account", "read_write"])
-                .unwrap()
+                .get_metric_with_label_values(&["account", "read_write"])?
                 .get(),
             999
         );
         assert_eq!(
             OP_SERVICEACCOUNT_RATELIMIT_RESET
-                .get_metric_with_label_values(&["account", "read_write"])
-                .unwrap()
+                .get_metric_with_label_values(&["account", "read_write"])?
                 .get(),
             83108
         );
+
+        Ok(())
     }
 
     #[rstest]
-    fn test_read_whoami(metrics_collector: OpMetricsCollector) {
+    fn test_read_whoami(metrics_collector: OpMetricsCollector) -> Result<()> {
         metrics_collector.read_whoami();
 
         // Assert
@@ -210,10 +201,11 @@ mod tests {
                     "!!!!!!!!!!!!!!!!!!!!!!!!!!",
                     "++++++++++++++++++++++++++",
                     "SERVICE_ACCOUNT"
-                ])
-                .unwrap()
+                ])?
                 .get(),
             1
         );
+
+        Ok(())
     }
 }

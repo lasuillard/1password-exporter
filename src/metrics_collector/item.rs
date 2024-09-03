@@ -113,71 +113,64 @@ impl OpMetricsCollector {
 
 #[cfg(test)]
 mod tests {
+    use anyhow::Result;
     use rstest::*;
 
     use super::*;
     use crate::testing::metrics_collector;
 
     #[rstest]
-    fn test_read_item(metrics_collector: OpMetricsCollector) {
+    fn test_read_item(metrics_collector: OpMetricsCollector) -> Result<()> {
         metrics_collector.read_item();
 
         // Assert
         assert_eq!(
-            OP_ITEM_COUNT_TOTAL
-                .get_metric_with_label_values(&[])
-                .unwrap()
-                .get(),
+            OP_ITEM_COUNT_TOTAL.get_metric_with_label_values(&[])?.get(),
             5
         );
         assert_eq!(
             OP_ITEM_COUNT_PER_VAULT
-                .get_metric_with_label_values(&["36vhq4xz3r6hnemzadk33evi4a"])
-                .unwrap()
+                .get_metric_with_label_values(&["36vhq4xz3r6hnemzadk33evi4a"])?
                 .get(),
             5
         );
         assert_eq!(
             OP_ITEM_COUNT_PER_TAG
-                .get_metric_with_label_values(&["dev"])
-                .unwrap()
+                .get_metric_with_label_values(&["dev"])?
                 .get(),
             1
         );
         assert_eq!(
             OP_ITEM_COUNT_PER_TAG
-                .get_metric_with_label_values(&["test"])
-                .unwrap()
+                .get_metric_with_label_values(&["test"])?
                 .get(),
             4
         );
         assert_eq!(
             OP_ITEM_COUNT_PER_CATEGORY
-                .get_metric_with_label_values(&["DOCUMENT"])
-                .unwrap()
+                .get_metric_with_label_values(&["DOCUMENT"])?
                 .get(),
             1
         );
         assert_eq!(
             OP_ITEM_COUNT_PER_CATEGORY
-                .get_metric_with_label_values(&["LOGIN"])
-                .unwrap()
+                .get_metric_with_label_values(&["LOGIN"])?
                 .get(),
             2
         );
         assert_eq!(
             OP_ITEM_COUNT_PER_CATEGORY
-                .get_metric_with_label_values(&["SECURE_NOTE"])
-                .unwrap()
+                .get_metric_with_label_values(&["SECURE_NOTE"])?
                 .get(),
             1
         );
         assert_eq!(
             OP_ITEM_COUNT_PER_CATEGORY
-                .get_metric_with_label_values(&["SSH_KEY"])
-                .unwrap()
+                .get_metric_with_label_values(&["SSH_KEY"])?
                 .get(),
             1
         );
+
+        Ok(())
     }
 }
