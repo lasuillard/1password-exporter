@@ -92,7 +92,7 @@ mod tests {
             _main(args).await.unwrap();
         });
 
-        let body = reqwest::get("http://localhost:9999")
+        let body = reqwest::get("http://localhost:9999/metrics")
             .await
             .unwrap()
             .text()
