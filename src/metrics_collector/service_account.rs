@@ -105,37 +105,10 @@ mod tests {
     use rstest::*;
 
     use super::*;
-    use crate::command_executor::MockCommandExecutor;
-
-    #[fixture]
-    fn ratelimit() -> String {
-        include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/tests/fixtures/ratelimit.json"
-        ))
-        .to_string()
-    }
-
-    #[fixture]
-    fn whoami() -> String {
-        include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/tests/fixtures/whoami.json"
-        ))
-        .to_string()
-    }
+    use crate::testing::metrics_collector;
 
     #[rstest]
-    fn test_read_ratelimit(ratelimit: String) {
-        // Arrange
-        let mut command_executor = MockCommandExecutor::new();
-        command_executor
-            .expect_exec()
-            .with(eq(vec!["service-account", "ratelimit", "--format", "json"]))
-            .returning(move |_| Ok(ratelimit.clone()));
-        let metrics_collector = OpMetricsCollector::new(Box::new(command_executor));
-
-        // Act
+    fn test_read_ratelimit(metrics_collector: OpMetricsCollector) {
         metrics_collector.read_ratelimit();
 
         // Assert
@@ -226,16 +199,7 @@ mod tests {
     }
 
     #[rstest]
-    fn test_read_whoami(whoami: String) {
-        // Arrange
-        let mut command_executor = MockCommandExecutor::new();
-        command_executor
-            .expect_exec()
-            .with(eq(vec!["whoami", "--format", "json"]))
-            .returning(move |_| Ok(whoami.clone()));
-        let metrics_collector = OpMetricsCollector::new(Box::new(command_executor));
-
-        // Act
+    fn test_read_whoami(metrics_collector: OpMetricsCollector) {
         metrics_collector.read_whoami();
 
         // Assert

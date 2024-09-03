@@ -6,6 +6,8 @@ use crate::metrics_collector::Metrics;
 mod command_executor;
 mod metrics_collector;
 mod server;
+#[cfg(test)]
+mod testing;
 
 /// A simple Prometheus exporter for the 1Password.
 #[derive(Parser, Debug)]

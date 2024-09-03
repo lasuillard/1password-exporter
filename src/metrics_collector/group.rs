@@ -44,29 +44,11 @@ mod tests {
     use rstest::*;
 
     use super::*;
-    use crate::command_executor::MockCommandExecutor;
-
-    #[fixture]
-    fn group() -> String {
-        include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/tests/fixtures/group.json"
-        ))
-        .to_string()
-    }
+    use crate::testing::metrics_collector;
 
     #[rstest]
-    fn test_read_group(group: String) {
-        // Arrange
-        let mut command_executor = MockCommandExecutor::new();
-        command_executor
-            .expect_exec()
-            .with(eq(vec!["group", "list", "--format", "json"]))
-            .returning(move |_| Ok(group.clone()));
-        let collector = OpMetricsCollector::new(Box::new(command_executor));
-
-        // Act
-        collector.read_group();
+    fn test_read_group(metrics_collector: OpMetricsCollector) {
+        metrics_collector.read_group();
 
         // Assert
         assert_eq!(

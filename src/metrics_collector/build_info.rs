@@ -22,17 +22,15 @@ impl OpMetricsCollector {
 
 #[cfg(test)]
 mod tests {
+    use rstest::*;
+
     use super::*;
-    use crate::command_executor::MockCommandExecutor;
+    use crate::testing::metrics_collector;
 
-    #[test]
-    fn test_read_buildinfo() {
-        // Arrange
-        let command_executor = MockCommandExecutor::new();
-        let collector = OpMetricsCollector::new(Box::new(command_executor));
-
+    #[rstest]
+    fn test_read_buildinfo(metrics_collector: OpMetricsCollector) {
         // Act
-        collector.read_buildinfo();
+        metrics_collector.read_buildinfo();
 
         // Assert
         assert_eq!(

@@ -63,35 +63,12 @@ mod tests {
     use rstest::*;
 
     use super::*;
-    use crate::command_executor::MockCommandExecutor;
-
-    #[fixture]
-    fn document() -> String {
-        include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/tests/fixtures/document.json"
-        ))
-        .to_string()
-    }
+    use crate::testing::metrics_collector;
 
     #[rstest]
-    fn test_read_document(document: String) {
-        // Arrange
-        let mut command_executor = MockCommandExecutor::new();
-        command_executor
-            .expect_exec()
-            .with(eq(vec![
-                "document",
-                "list",
-                "--format",
-                "json",
-                "--include-archive",
-            ]))
-            .returning(move |_| Ok(document.clone()));
-        let collector = OpMetricsCollector::new(Box::new(command_executor));
-
+    fn test_read_document(metrics_collector: OpMetricsCollector) {
         // Act
-        collector.read_document();
+        metrics_collector.read_document();
 
         // Assert
         assert_eq!(

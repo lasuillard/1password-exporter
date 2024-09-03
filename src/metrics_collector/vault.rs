@@ -40,29 +40,11 @@ mod tests {
     use rstest::*;
 
     use super::*;
-    use crate::command_executor::MockCommandExecutor;
-
-    #[fixture]
-    fn vault() -> String {
-        include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/tests/fixtures/vault.json"
-        ))
-        .to_string()
-    }
+    use crate::testing::metrics_collector;
 
     #[rstest]
-    fn test_read_vault(vault: String) {
-        // Arrange
-        let mut command_executor = MockCommandExecutor::new();
-        command_executor
-            .expect_exec()
-            .with(eq(vec!["vault", "list", "--format", "json"]))
-            .returning(move |_| Ok(vault.clone()));
-        let collector = OpMetricsCollector::new(Box::new(command_executor));
-
-        // Act
-        collector.read_vault();
+    fn test_read_vault(metrics_collector: OpMetricsCollector) {
+        metrics_collector.read_vault();
 
         // Assert
         assert_eq!(
