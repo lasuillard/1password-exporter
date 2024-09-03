@@ -10,8 +10,7 @@ use tokio::net::TcpListener;
 use crate::{command_executor::OpCommandExecutor,
             metrics_collector::{Metrics, OpMetricsCollector}};
 
-async fn serve(
-    _req: Request<impl hyper::body::Body>,
+async fn serve_metrics(
     metrics: Vec<Metrics>,
     op_path: String,
     service_account_token: Option<String>,
@@ -19,7 +18,6 @@ async fn serve(
     // Collect all metrics
     let command_executor = OpCommandExecutor::new(op_path, service_account_token);
     let metrics_collector = OpMetricsCollector::new(Box::new(command_executor));
-    // TODO: Only collect required metrics (read from config)
     metrics_collector.collect(metrics);
 
     // Encode to Prometheus format
@@ -36,6 +34,26 @@ async fn serve(
         .unwrap();
 
     Ok(response)
+}
+
+async fn serve(
+    req: Request<impl hyper::body::Body>,
+    metrics: Vec<Metrics>,
+    op_path: String,
+    service_account_token: Option<String>,
+) -> Result<Response<Full<Bytes>>, hyper::Error> {
+    match (req.method(), req.uri().path()) {
+        (&hyper::Method::GET, "/metrics") => {
+            serve_metrics(metrics, op_path, service_account_token).await
+        }
+        _ => {
+            let response = Response::builder()
+                .status(404)
+                .body(Full::new(Bytes::from("Not Found")))
+                .unwrap();
+            Ok(response)
+        }
+    }
 }
 
 pub(crate) async fn run_server(

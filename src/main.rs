@@ -6,6 +6,8 @@ use crate::metrics_collector::Metrics;
 mod command_executor;
 mod metrics_collector;
 mod server;
+#[cfg(test)]
+mod testing;
 
 /// A simple Prometheus exporter for the 1Password.
 #[derive(Parser, Debug)]
@@ -90,7 +92,7 @@ mod tests {
             _main(args).await.unwrap();
         });
 
-        let body = reqwest::get("http://localhost:9999")
+        let body = reqwest::get("http://localhost:9999/metrics")
             .await
             .unwrap()
             .text()
@@ -103,6 +105,12 @@ mod tests {
 # HELP op_account_current Current 1Password account information.
 # TYPE op_account_current gauge
 op_account_current{created_at="2023-03-19T05:06:27Z",domain="my",id="??????????????????????????",name="**********",state="ACTIVE",type="FAMILY"} 1
+# HELP op_document_count_per_tag Number of documents per tag.
+# TYPE op_document_count_per_tag gauge
+op_document_count_per_tag{tag="test"} 1
+# HELP op_document_count_per_vault Number of documents per vault.
+# TYPE op_document_count_per_vault gauge
+op_document_count_per_vault{vault="36vhq4xz3r6hnemzadk33evi4a"} 1
 # HELP op_document_count_total Total number of documents.
 # TYPE op_document_count_total gauge
 op_document_count_total 1
@@ -112,9 +120,22 @@ op_exporter_buildinfo{version="0.1.0"} 1
 # HELP op_group_count_total Total number of groups.
 # TYPE op_group_count_total gauge
 op_group_count_total 4
+# HELP op_item_count_per_category Number of items per category.
+# TYPE op_item_count_per_category gauge
+op_item_count_per_category{category="DOCUMENT"} 1
+op_item_count_per_category{category="LOGIN"} 2
+op_item_count_per_category{category="SECURE_NOTE"} 1
+op_item_count_per_category{category="SSH_KEY"} 1
+# HELP op_item_count_per_tag Number of items per tag.
+# TYPE op_item_count_per_tag gauge
+op_item_count_per_tag{tag="dev"} 1
+op_item_count_per_tag{tag="test"} 4
+# HELP op_item_count_per_vault Number of items per vault.
+# TYPE op_item_count_per_vault gauge
+op_item_count_per_vault{vault="36vhq4xz3r6hnemzadk33evi4a"} 5
 # HELP op_item_count_total Total number of items.
 # TYPE op_item_count_total gauge
-op_item_count_total 1
+op_item_count_total 5
 # HELP op_serviceaccount_ratelimit_limit API rate limit.
 # TYPE op_serviceaccount_ratelimit_limit gauge
 op_serviceaccount_ratelimit_limit{action="read",type="token"} 1000

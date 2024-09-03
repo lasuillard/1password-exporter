@@ -22,8 +22,6 @@ impl OpCommandExecutor {
     }
 }
 
-// Allow specify the command(op) to execute via CLI option
-// Allow specify the service account token to use via CLI option
 impl CommandExecutor for OpCommandExecutor {
     fn exec(&self, args: Vec<&'static str>) -> Result<String, std::io::Error> {
         let mut cmd: &mut Command = &mut Command::new(self.op_path.clone());

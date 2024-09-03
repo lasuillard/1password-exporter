@@ -49,32 +49,16 @@ impl OpMetricsCollector {
 
 #[cfg(test)]
 mod tests {
+    use anyhow::Result;
     use rstest::*;
 
     use super::*;
-    use crate::command_executor::MockCommandExecutor;
-
-    #[fixture]
-    fn account() -> String {
-        include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/tests/fixtures/account.json"
-        ))
-        .to_string()
-    }
+    use crate::testing::metrics_collector;
 
     #[rstest]
-    fn test_read_account(account: String) {
-        // Arrange
-        let mut command_executor = MockCommandExecutor::new();
-        command_executor
-            .expect_exec()
-            .with(eq(vec!["account", "get", "--format", "json"]))
-            .returning(move |_| Ok(account.clone()));
-        let collector = OpMetricsCollector::new(Box::new(command_executor));
-
+    fn test_read_account(metrics_collector: OpMetricsCollector) -> Result<()> {
         // Act
-        collector.read_account();
+        metrics_collector.read_account();
 
         // Assert
         assert_eq!(
@@ -86,10 +70,11 @@ mod tests {
                     "FAMILY",
                     "ACTIVE",
                     "2023-03-19T05:06:27Z",
-                ])
-                .unwrap()
+                ])?
                 .get(),
             1
         );
+
+        Ok(())
     }
 }

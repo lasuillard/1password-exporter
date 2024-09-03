@@ -40,40 +40,19 @@ impl OpMetricsCollector {
 
 #[cfg(test)]
 mod tests {
+    use anyhow::Result;
     use rstest::*;
 
     use super::*;
-    use crate::command_executor::MockCommandExecutor;
-
-    #[fixture]
-    fn user() -> String {
-        include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/tests/fixtures/user.json"
-        ))
-        .to_string()
-    }
+    use crate::testing::metrics_collector;
 
     #[rstest]
-    fn test_read_user(user: String) {
-        // Arrange
-        let mut command_executor = MockCommandExecutor::new();
-        command_executor
-            .expect_exec()
-            .with(eq(vec!["user", "list", "--format", "json"]))
-            .returning(move |_| Ok(user.clone()));
-        let collector = OpMetricsCollector::new(Box::new(command_executor));
-
-        // Act
-        collector.read_user();
+    fn test_read_user(metrics_collector: OpMetricsCollector) -> Result<()> {
+        metrics_collector.read_user();
 
         // Assert
-        assert_eq!(
-            OP_USER_TOTAL
-                .get_metric_with_label_values(&[])
-                .unwrap()
-                .get(),
-            1
-        );
+        assert_eq!(OP_USER_TOTAL.get_metric_with_label_values(&[])?.get(), 1);
+
+        Ok(())
     }
 }
