@@ -116,7 +116,7 @@ op_exporter_buildinfo{version="0.1.0"} 1
 op_group_count_total 4
 # HELP op_item_count_total Total number of items.
 # TYPE op_item_count_total gauge
-op_item_count_total 1
+op_item_count_total 5
 # HELP op_serviceaccount_ratelimit_limit API rate limit.
 # TYPE op_serviceaccount_ratelimit_limit gauge
 op_serviceaccount_ratelimit_limit{action="read",type="token"} 1000

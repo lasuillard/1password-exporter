@@ -1,15 +1,100 @@
 [
-    {
-        "id": "5zouxmnesgyexgg2sld32g627a",
-        "title": "Empty Document",
-        "version": 2,
-        "vault": {
-            "id": "qbdrg7xppiklcy74pf4uw5cmka",
-            "name": "Infra: Home Server"
-        },
-        "category": "DOCUMENT",
-        "last_edited_by": "K3MAYGGYRZA2XN2AMQ5ADZJ6VI",
-        "created_at": "2024-08-04T04:06:31Z",
-        "updated_at": "2024-08-04T04:06:58Z"
-    }
+  {
+    "id": "g6eavfubl5g6eobvdos3o3rezu",
+    "title": "SSH Key",
+    "tags": [
+      "dev",
+      "test"
+    ],
+    "version": 3,
+    "vault": {
+      "id": "36vhq4xz3r6hnemzadk33evi4a",
+      "name": "Testing"
+    },
+    "category": "SSH_KEY",
+    "last_edited_by": "K3MAYGGYRZA2XN2AMQ5ADZJ6VI",
+    "created_at": "2024-09-03T12:54:11Z",
+    "updated_at": "2024-09-03T13:11:38Z",
+    "additional_information": "SHA256:LhQ41Wr9ktjr2fH9c4wkFEfiuVakmgV0c7hJAiK5PIQ"
+  },
+  {
+    "id": "sodap6eyz5e3qaypflx3s6m66i",
+    "title": "README.md",
+    "version": 1,
+    "vault": {
+      "id": "36vhq4xz3r6hnemzadk33evi4a",
+      "name": "Testing"
+    },
+    "category": "SECURE_NOTE",
+    "last_edited_by": "K3MAYGGYRZA2XN2AMQ5ADZJ6VI",
+    "created_at": "2024-09-03T12:55:00Z",
+    "updated_at": "2024-09-03T12:55:00Z",
+    "additional_information": "Vault with non-sensitive items for testing purposes."
+  },
+  {
+    "id": "lg4ukcbfhd54tgb3ixzmv7lrcu",
+    "title": "Empty Document",
+    "tags": [
+      "test"
+    ],
+    "version": 3,
+    "vault": {
+      "id": "36vhq4xz3r6hnemzadk33evi4a",
+      "name": "Testing"
+    },
+    "category": "DOCUMENT",
+    "last_edited_by": "K3MAYGGYRZA2XN2AMQ5ADZJ6VI",
+    "created_at": "2024-08-04T04:06:31Z",
+    "updated_at": "2024-09-03T12:57:17Z",
+    "additional_information": "9 KB"
+  },
+  {
+    "id": "2es3264asyxpp77km3kjyp5jci",
+    "title": "Example (Archive)",
+    "tags": [
+      "test"
+    ],
+    "version": 5,
+    "state": "ARCHIVED",
+    "vault": {
+      "id": "36vhq4xz3r6hnemzadk33evi4a",
+      "name": "Testing"
+    },
+    "category": "LOGIN",
+    "last_edited_by": "K3MAYGGYRZA2XN2AMQ5ADZJ6VI",
+    "created_at": "2024-09-03T12:54:01Z",
+    "updated_at": "2024-09-03T12:58:21Z",
+    "additional_information": "jYev7uhk4pqsjCEGjBDH",
+    "urls": [
+      {
+        "label": "website",
+        "primary": true,
+        "href": "https://example.com"
+      }
+    ]
+  },
+  {
+    "id": "4ebtcod2wdqglk3cwv26w2clua",
+    "title": "Example",
+    "tags": [
+      "test"
+    ],
+    "version": 1,
+    "vault": {
+      "id": "36vhq4xz3r6hnemzadk33evi4a",
+      "name": "Testing"
+    },
+    "category": "LOGIN",
+    "last_edited_by": "K3MAYGGYRZA2XN2AMQ5ADZJ6VI",
+    "created_at": "2024-09-03T12:54:01Z",
+    "updated_at": "2024-09-03T12:54:38Z",
+    "additional_information": "oU2kvtkeAXu8oH9ov6wL",
+    "urls": [
+      {
+        "label": "website",
+        "primary": true,
+        "href": "https://example.com"
+      }
+    ]
+  }
 ]

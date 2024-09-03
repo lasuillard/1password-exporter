@@ -78,7 +78,7 @@ mod tests {
                 .get_metric_with_label_values(&[])
                 .unwrap()
                 .get(),
-            1
+            5
         );
     }
 }
