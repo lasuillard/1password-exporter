@@ -21,7 +21,6 @@ struct Args {
     #[arg(long, default_value = "127.0.0.1")]
     host: String,
 
-    // TODO: Pick a different port later
     /// Port to bind the server to.
     #[arg(short, long, default_value_t = 9999)]
     port: u16,
@@ -116,7 +115,7 @@ op_document_count_per_vault{vault="36vhq4xz3r6hnemzadk33evi4a"} 1
 op_document_count_total 1
 # HELP op_exporter_buildinfo Build information of this exporter.
 # TYPE op_exporter_buildinfo gauge
-op_exporter_buildinfo{version="0.1.0"} 1
+op_exporter_buildinfo{version="0.2.0"} 1
 # HELP op_group_count_total Total number of groups.
 # TYPE op_group_count_total gauge
 op_group_count_total 4
