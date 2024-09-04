@@ -1,8 +1,6 @@
 services:
   onepassword-exporter:
-    # TODO: Replace with image once published to Docker Hub
-    build:
-      context: ../../
+    image: lasuillard/1password-exporter:main
     ports:
       - ${OP_EXPORTER_HOST:-127.0.0.1}:${OP_EXPORTER_PORT:-9999}:9999
     environment:
