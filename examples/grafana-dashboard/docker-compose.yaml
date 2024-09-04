@@ -1,10 +1,19 @@
 services:
+  onepassword-exporter:
+    build:
+      context: ../../
+    ports:
+      - ${OP_EXPORTER_HOST:-127.0.0.1}:${OP_EXPORTER_PORT:-9999}:9999
+    environment:
+      OP_SERVICE_ACCOUNT_TOKEN: ${OP_SERVICE_ACCOUNT_TOKEN:?}
+    command: --log-level DEBUG --host 0.0.0.0 --metrics account build-info document group item service-account user vault
+
   prometheus:
     image: prom/prometheus:latest
     extra_hosts:
       - host.docker.internal:host-gateway
     ports:
-      - 9090:9090
+      - ${PROMETHEUS_HOST:-127.0.0.1}:${PROMETHEUS_PORT:-9090}:9090
     volumes:
       - prometheus-data:/prometheus
     configs:
@@ -16,7 +25,7 @@ services:
   grafana:
     image: grafana/grafana:latest
     ports:
-      - 3000:3000
+      - ${GRAFANA_HOST:-127.0.0.1}:${GRAFANA_PORT:-3000}:3000
     volumes:
       - ./dashboard.json:/var/lib/grafana/dashboards/dashboard.json
     configs:
@@ -69,13 +78,13 @@ configs:
       scrape_configs:
       - job_name: onepassword
         honor_timestamps: true
-        scrape_interval: 30s
-        scrape_timeout: 15s
+        scrape_interval: 180s
+        scrape_timeout: 30s
         metrics_path: /metrics
         scheme: http
         static_configs:
         - targets:
-          - host.docker.internal:9999
+          - onepassword-exporter:9999
 
 volumes:
   prometheus-data:
