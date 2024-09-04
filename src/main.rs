@@ -21,7 +21,6 @@ struct Args {
     #[arg(long, default_value = "127.0.0.1")]
     host: String,
 
-    // TODO: Pick a different port later
     /// Port to bind the server to.
     #[arg(short, long, default_value_t = 9999)]
     port: u16,
