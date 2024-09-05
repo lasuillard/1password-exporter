@@ -5,6 +5,7 @@ services:
       - ${OP_EXPORTER_HOST:-127.0.0.1}:${OP_EXPORTER_PORT:-9999}:9999
     environment:
       OP_SERVICE_ACCOUNT_TOKEN: ${OP_SERVICE_ACCOUNT_TOKEN:?}
+    init: true
     command: --log-level DEBUG --host 0.0.0.0 --metrics account build-info document group item service-account user vault
 
   prometheus:
