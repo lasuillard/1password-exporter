@@ -141,6 +141,14 @@ op_user_count_total 1
 op_vault_count_total 1
 ```
 
+## ⚠️ Limitations
+
+Due to how the OP CLI and the exporter works, there are several known limitations:
+
+- Exporter can collect metrics from vaults SA has read access.
+- Any newly created vaults won't be tracked because 1Password does not support automatic access grant for SA to newly created vaults. If you added new vault, you should create new SA and update the SA token.
+- Some vaults (e.g. Private) is impossible to share with SA, therefore metrics for those vaults cannot be collected.
+
 ## 💖 Contributing
 
 Please submit issues or pull requests for questions, bugs, or requests for new features.
