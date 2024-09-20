@@ -22,9 +22,9 @@ The exporter provides download option as binary and Docker image.
 To use binary, download it from releases and run:
 
 ```bash
-$ OP_EXPORTER_VERSION="0.2.0" wget -qO ./onepassword-exporter "https://github.com/lasuillard/1password-exporter/releases/download/${OP_EXPORTER_VERSION}/onepassword-exporter-x86_64-unknown-linux-musl"
+$ OP_EXPORTER_VERSION="0.2.1" wget -qO ./onepassword-exporter "https://github.com/lasuillard/1password-exporter/releases/download/${OP_EXPORTER_VERSION}/onepassword-exporter-x86_64-unknown-linux-musl"
 $ chmod +x ./onepassword-exporter
-$ ./onepassword-exporter  --help
+$ ./onepassword-exporter --help
 A simple Prometheus exporter for the 1Password
 
 Usage: onepassword-exporter [OPTIONS]
