@@ -21,11 +21,3 @@ cargo binstall -y --log-level debug \
     cargo-nextest \
     cargo-udeps \
     cargo-watch
-
-echo "
-if [ -f /etc/bash_completion ]; then
-    . /etc/bash_completion
-fi
-
-source <(op completion bash)
-" >>~/.bashrc
