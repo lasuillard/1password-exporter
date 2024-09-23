@@ -1,4 +1,44 @@
 {
+  "__inputs": [],
+  "__elements": {},
+  "__requires": [
+    {
+      "type": "panel",
+      "id": "gauge",
+      "name": "Gauge",
+      "version": ""
+    },
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "11.2.0"
+    },
+    {
+      "type": "datasource",
+      "id": "prometheus",
+      "name": "Prometheus",
+      "version": "1.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "stat",
+      "name": "Stat",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "table",
+      "name": "Table",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "timeseries",
+      "name": "Time series",
+      "version": ""
+    }
+  ],
   "annotations": {
     "list": [
       {
@@ -19,6 +59,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
+  "id": null,
   "links": [],
   "panels": [
     {
@@ -1793,7 +1834,7 @@
             "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "",
+            "axisLabel": "op_document_count_per_vault",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "barWidthFactor": 0.6,
@@ -1837,7 +1878,28 @@
             ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "op_document_file_size_per_vault_bytes"
+            },
+            "properties": [
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "custom.axisLabel",
+                "value": "op_document_file_size_per_vault_bytes"
+              },
+              {
+                "id": "unit",
+                "value": "decbytes"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 10,
@@ -1874,6 +1936,23 @@
           "legendFormat": "{{vault}}",
           "range": true,
           "refId": "A",
+          "useBackend": false
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "disableTextWrap": false,
+          "editorMode": "builder",
+          "expr": "op_document_file_size_per_vault_bytes",
+          "fullMetaSearch": false,
+          "hide": false,
+          "includeNullMetadata": true,
+          "instant": false,
+          "legendFormat": "{{vault}}",
+          "range": true,
+          "refId": "B",
           "useBackend": false
         }
       ],
@@ -2332,7 +2411,7 @@
             "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "",
+            "axisLabel": "op_document_count_per_tag",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "barWidthFactor": 0.6,
@@ -2376,7 +2455,28 @@
             ]
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "op_document_file_size_per_tag_bytes"
+            },
+            "properties": [
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "custom.axisLabel",
+                "value": "op_document_file_size_per_tag_bytes"
+              },
+              {
+                "id": "unit",
+                "value": "decbytes"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 10,
@@ -2413,6 +2513,23 @@
           "legendFormat": "{{tag}}",
           "range": true,
           "refId": "A",
+          "useBackend": false
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "disableTextWrap": false,
+          "editorMode": "builder",
+          "expr": "op_document_file_size_per_tag_bytes",
+          "fullMetaSearch": false,
+          "hide": false,
+          "includeNullMetadata": true,
+          "instant": false,
+          "legendFormat": "{{tag}}",
+          "range": true,
+          "refId": "B",
           "useBackend": false
         }
       ],
