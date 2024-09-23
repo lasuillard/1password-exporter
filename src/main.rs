@@ -113,6 +113,12 @@ op_document_count_per_vault{vault="36vhq4xz3r6hnemzadk33evi4a"} 4
 # HELP op_document_count_total Total number of documents.
 # TYPE op_document_count_total gauge
 op_document_count_total 4
+# HELP op_document_file_size_per_tag_bytes Size of file in documents per tag, in bytes.
+# TYPE op_document_file_size_per_tag_bytes gauge
+op_document_file_size_per_tag_bytes{tag="test"} 10494986
+# HELP op_document_file_size_per_vault_bytes Size of file in documents per vault, in bytes.
+# TYPE op_document_file_size_per_vault_bytes gauge
+op_document_file_size_per_vault_bytes{vault="36vhq4xz3r6hnemzadk33evi4a"} 10494986
 # HELP op_exporter_buildinfo Build information of this exporter.
 # TYPE op_exporter_buildinfo gauge
 op_exporter_buildinfo{version="0.2.0"} 1
