@@ -106,13 +106,13 @@ mod tests {
 op_account_current{created_at="2023-03-19T05:06:27Z",domain="my",id="??????????????????????????",name="**********",state="ACTIVE",type="FAMILY"} 1
 # HELP op_document_count_per_tag Number of documents per tag.
 # TYPE op_document_count_per_tag gauge
-op_document_count_per_tag{tag="test"} 1
+op_document_count_per_tag{tag="test"} 4
 # HELP op_document_count_per_vault Number of documents per vault.
 # TYPE op_document_count_per_vault gauge
-op_document_count_per_vault{vault="36vhq4xz3r6hnemzadk33evi4a"} 1
+op_document_count_per_vault{vault="36vhq4xz3r6hnemzadk33evi4a"} 4
 # HELP op_document_count_total Total number of documents.
 # TYPE op_document_count_total gauge
-op_document_count_total 1
+op_document_count_total 4
 # HELP op_exporter_buildinfo Build information of this exporter.
 # TYPE op_exporter_buildinfo gauge
 op_exporter_buildinfo{version="0.2.0"} 1

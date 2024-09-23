@@ -114,19 +114,19 @@ mod tests {
             OP_DOCUMENT_COUNT_TOTAL
                 .get_metric_with_label_values(&[])?
                 .get(),
-            1
+            4
         );
         assert_eq!(
             OP_DOCUMENT_COUNT_PER_VAULT
                 .get_metric_with_label_values(&["36vhq4xz3r6hnemzadk33evi4a"])?
                 .get(),
-            1
+            4
         );
         assert_eq!(
             OP_DOCUMENT_COUNT_PER_TAG
                 .get_metric_with_label_values(&["test"])?
                 .get(),
-            1
+            4
         );
 
         Ok(())
