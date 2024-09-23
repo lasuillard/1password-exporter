@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use lazy_static::lazy_static;
 #[cfg(test)]
 use mockall::predicate::*;
-use prometheus::{register_int_gauge_vec, HistogramVec, IntGaugeVec};
+use prometheus::{register_int_gauge_vec, IntGaugeVec};
 use serde::Deserialize;
 
 use super::OpMetricsCollector;
