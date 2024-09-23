@@ -27,6 +27,7 @@ services:
     ports:
       - ${GRAFANA_HOST:-127.0.0.1}:${GRAFANA_PORT:-3000}:3000
     volumes:
+      - grafana-data:/var/lib/grafana
       - ./dashboard.json:/var/lib/grafana/dashboards/dashboard.json
     configs:
       - source: datasource.yaml
@@ -87,4 +88,5 @@ configs:
           - onepassword-exporter:9999
 
 volumes:
+  grafana-data:
   prometheus-data:
