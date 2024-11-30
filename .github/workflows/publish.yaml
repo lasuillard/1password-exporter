@@ -64,3 +64,5 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           repository: ${{ vars.DOCKER_REPOSITORY }}
+          short-description: ${{ github.event.repository.description }}
+          enable-url-completion: true
