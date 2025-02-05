@@ -33,6 +33,9 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -57,15 +60,16 @@ jobs:
           cargo llvm-cov report --summary-only
 
       - name: Upload test results to Codecov
-        uses: codecov/test-results-action@v1
+        uses: codecov/codecov-action@v5
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+          use_oidc: true
           fail_ci_if_error: false
+          report_type: test_results
           files: target/nextest/default/junit.xml
 
       - name: Upload coverage report
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+          use_oidc: true
           fail_ci_if_error: false
           files: lcov.info
