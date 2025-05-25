@@ -22,4 +22,4 @@ tokio = { version = "1.44.2", features = ["full"] }
 anyhow = "1.0.86"
 mockall = "0.13.0"
 reqwest = "0.12.5"
-rstest = "0.21.0"
+rstest = "0.25.0"
