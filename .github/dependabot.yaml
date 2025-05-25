@@ -7,17 +7,18 @@ updates:
       interval: monthly
 
   - package-ecosystem: cargo
+    directory: /
     schedule:
       interval: monthly
     ignore:
-      - dependency-name: '*'
-        update-types: ['version-update:semver-patch']
+      - dependency-name: "*"
+        update-types: ["version-update:semver-patch"]
     groups:
       dev-dependencies:
         applies-to: version-updates
         dependency-type: development
 
   - package-ecosystem: devcontainers
-    directory: '/'
+    directory: "/"
     schedule:
       interval: monthly
