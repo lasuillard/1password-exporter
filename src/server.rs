@@ -71,7 +71,7 @@ pub(crate) async fn run_server(
         log::warn!("Service account token explicitly set.");
     }
     let listener = TcpListener::bind(addr).await?;
-    log::info!("Listening on {}", listener.local_addr()?);
+    log::info!("Listening on http://{}", listener.local_addr()?);
     loop {
         let (tcp, _) = listener.accept().await?;
         let io = TokioIo::new(tcp);
