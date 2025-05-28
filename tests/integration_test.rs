@@ -2,13 +2,26 @@ use assert_cmd::cargo::cargo_bin;
 
 const MOCK_OP: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/mock_op.bash");
 
+fn get_random_port() -> u16 {
+    let listener =
+        std::net::TcpListener::bind("127.0.0.0:0").expect("Failed to bind to random port");
+
+    listener
+        .local_addr()
+        .expect("Failed to get local address")
+        .port()
+}
+
 #[tokio::test]
 async fn test_metrics_serving() {
-    let server = tokio::spawn(async {
+    let port = get_random_port();
+    let server = tokio::spawn(async move {
         tokio::process::Command::new(cargo_bin!(env!("CARGO_PKG_NAME")))
             .args(&[
                 "--log-level",
                 "DEBUG",
+                "--port",
+                &port.to_string(),
                 "--op-path",
                 MOCK_OP,
                 "--metrics",
@@ -30,7 +43,7 @@ async fn test_metrics_serving() {
     // Wait for the server to start
     tokio::time::sleep(std::time::Duration::from_secs(5)).await;
 
-    let body = reqwest::get("http://localhost:9999/metrics")
+    let body = reqwest::get(format!("http://localhost:{port}/metrics"))
         .await
         .unwrap()
         .text()
