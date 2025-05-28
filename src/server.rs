@@ -70,9 +70,8 @@ pub(crate) async fn run_server(
     if service_account_token.is_some() {
         log::warn!("Service account token explicitly set.");
     }
-    log::info!("Listening on http://{}", addr);
-
     let listener = TcpListener::bind(addr).await?;
+    log::info!("Listening on http://{}", listener.local_addr()?);
     loop {
         let (tcp, _) = listener.accept().await?;
         let io = TokioIo::new(tcp);
