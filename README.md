@@ -96,7 +96,7 @@ op_document_file_size_per_tag_bytes{tag="test"} 10494986
 op_document_file_size_per_vault_bytes{vault="36vhq4xz3r6hnemzadk33evi4a"} 10494986
 # HELP op_exporter_buildinfo Build information of this exporter.
 # TYPE op_exporter_buildinfo gauge
-op_exporter_buildinfo{version="0.3.1"} 1
+op_exporter_buildinfo{version="0.4.0"} 1
 # HELP op_group_count_total Total number of groups.
 # TYPE op_group_count_total gauge
 op_group_count_total 4
