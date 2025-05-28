@@ -1,10 +1,9 @@
 use std::{process::Command, thread};
 
 use assert_cmd::cargo::cargo_bin;
+use test_helper::MOCK_OP;
 
 mod test_helper;
-
-const MOCK_OP: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/mock_op.bash");
 
 #[tokio::test]
 async fn test_metrics_serving() {
@@ -46,11 +45,5 @@ async fn test_metrics_serving() {
         .await
         .unwrap();
 
-    assert_eq!(
-        body,
-        include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/tests/expected_metrics.txt"
-        )),
-    );
+    assert_eq!(body, include_str!(test_dir!("expected_metrics.txt")),);
 }
