@@ -36,7 +36,7 @@ mod tests {
         // Assert
         assert_eq!(
             OP_EXPORTER_BUILDINFO
-                .get_metric_with_label_values(&["0.4.0"])?
+                .get_metric_with_label_values(&["0.4.1"])?
                 .get(),
             1
         );
