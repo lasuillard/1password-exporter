@@ -7,7 +7,7 @@ edition = "2021"
 bytes = "1.6.1"
 clap = { version = "4.5.11", features = ["derive"] }
 http-body-util = "0.1.2"
-hyper = { version = "1.4.1", features = ["http1", "server"] }
+hyper = { version = "1.7.0", features = ["http1", "server"] }
 hyper-util = { version = "0.1.6", features = ["tokio"] }
 lazy_static = "1.5.0"
 log = "0.4.22"
