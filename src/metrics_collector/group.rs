@@ -34,7 +34,7 @@ impl OpMetricsCollector {
         let groups: Vec<Group> = serde_json::from_str(&output).unwrap();
 
         OP_GROUP_COUNT_TOTAL
-            .with_label_values(&[])
+            .with_label_values::<&str>(&[])
             .set(groups.len() as i64);
     }
 }
@@ -54,7 +54,7 @@ mod tests {
         // Assert
         assert_eq!(
             OP_GROUP_COUNT_TOTAL
-                .get_metric_with_label_values(&[])?
+                .get_metric_with_label_values::<&str>(&[])?
                 .get(),
             4
         );

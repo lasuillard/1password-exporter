@@ -88,10 +88,7 @@ impl OpMetricsCollector {
         for document in &documents {
             let vault_id = document.vault.id.clone();
             let file_size = match &document.overview_ainfo {
-                Some(overview_ainfo) => match parse_file_size_bytes(overview_ainfo) {
-                    Some(file_size) => file_size,
-                    None => 0,
-                },
+                Some(overview_ainfo) => parse_file_size_bytes(overview_ainfo).unwrap_or_default(),
                 None => 0,
             };
             let tags = document.tags.clone().unwrap_or_default();
@@ -107,7 +104,7 @@ impl OpMetricsCollector {
 
         // Set metrics
         OP_DOCUMENT_COUNT_TOTAL
-            .with_label_values(&[])
+            .with_label_values::<&str>(&[])
             .set(documents.len() as i64);
 
         count_per_vault.iter().for_each(|(vault, count)| {
@@ -185,7 +182,7 @@ mod tests {
         // Assert
         assert_eq!(
             OP_DOCUMENT_COUNT_TOTAL
-                .get_metric_with_label_values(&[])?
+                .get_metric_with_label_values::<&str>(&[])?
                 .get(),
             4
         );

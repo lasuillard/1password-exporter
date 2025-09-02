@@ -34,7 +34,9 @@ impl OpMetricsCollector {
             .unwrap();
         let users: Vec<User> = serde_json::from_str(&output).unwrap();
 
-        OP_USER_TOTAL.with_label_values(&[]).set(users.len() as i64);
+        OP_USER_TOTAL
+            .with_label_values::<&str>(&[])
+            .set(users.len() as i64);
     }
 }
 
@@ -51,7 +53,12 @@ mod tests {
         metrics_collector.read_user();
 
         // Assert
-        assert_eq!(OP_USER_TOTAL.get_metric_with_label_values(&[])?.get(), 1);
+        assert_eq!(
+            OP_USER_TOTAL
+                .get_metric_with_label_values::<&str>(&[])?
+                .get(),
+            1
+        );
 
         Ok(())
     }

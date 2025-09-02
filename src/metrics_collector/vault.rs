@@ -30,7 +30,7 @@ impl OpMetricsCollector {
         let vaults: Vec<Vault> = serde_json::from_str(&output).unwrap();
 
         OP_VAULT_TOTAL
-            .with_label_values(&[])
+            .with_label_values::<&str>(&[])
             .set(vaults.len() as i64);
     }
 }
@@ -48,7 +48,12 @@ mod tests {
         metrics_collector.read_vault();
 
         // Assert
-        assert_eq!(OP_VAULT_TOTAL.get_metric_with_label_values(&[])?.get(), 1);
+        assert_eq!(
+            OP_VAULT_TOTAL
+                .get_metric_with_label_values::<&str>(&[])?
+                .get(),
+            1
+        );
 
         Ok(())
     }
