@@ -92,7 +92,7 @@ impl OpMetricsCollector {
 
         // Set metrics
         OP_ITEM_COUNT_TOTAL
-            .with_label_values(&[])
+            .with_label_values::<&str>(&[])
             .set(items.len() as i64);
 
         count_per_vault.iter().for_each(|(vault, count)| {
@@ -125,7 +125,9 @@ mod tests {
 
         // Assert
         assert_eq!(
-            OP_ITEM_COUNT_TOTAL.get_metric_with_label_values(&[])?.get(),
+            OP_ITEM_COUNT_TOTAL
+                .get_metric_with_label_values::<&str>(&[])?
+                .get(),
             5
         );
         assert_eq!(
